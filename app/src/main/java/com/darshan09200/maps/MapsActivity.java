@@ -11,6 +11,7 @@ import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 import androidx.fragment.app.FragmentActivity;
 import androidx.fragment.app.FragmentManager;
+import androidx.lifecycle.ViewModelProvider;
 
 import android.Manifest;
 import android.content.Intent;
@@ -19,6 +20,8 @@ import android.os.Bundle;
 import android.view.Menu;
 import android.view.MenuItem;
 
+import com.darshan09200.maps.model.Favourite;
+import com.darshan09200.maps.model.FavouriteViewModel;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
@@ -32,6 +35,7 @@ import com.google.android.libraries.places.widget.Autocomplete;
 import com.google.android.libraries.places.widget.model.AutocompleteActivityMode;
 import com.google.android.material.bottomsheet.BottomSheetDialog;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Properties;
@@ -46,14 +50,22 @@ public class MapsActivity extends AppCompatActivity {
 
     private ActivityMapsBinding binding;
     private boolean locationPermissionGranted = false;
-    BottomSheetFragment bottomSheetFragment = new BottomSheetFragment();
+    private FavouriteViewModel favouriteViewModel;
+    private final List<Favourite> favourites = new ArrayList<>();
 
+    BottomSheetFragment bottomSheetFragment = new BottomSheetFragment();
     ActivityResultLauncher<Intent> autocompleteActivityResult = registerForActivityResult(
             new ActivityResultContracts.StartActivityForResult(),
             result -> {
                 if (result.getResultCode() == RESULT_OK) {
                     Place place = Autocomplete.getPlaceFromIntent(result.getData());
                     System.out.println("Place: " + place.getName() + ", " + place.getId());
+
+                    Favourite favourite = new Favourite();
+                    favourite.id = place.getId();
+                    favourite.coordinate = place.getLatLng();
+                    favourite.name = place.getName();
+                    favouriteViewModel.insert(favourite);
                 }
             });
     @Override
@@ -69,6 +81,13 @@ public class MapsActivity extends AppCompatActivity {
         updateLocationUI();
 
         Places.initialize(getApplicationContext(), getResources().getString(R.string.api_key));
+
+        favouriteViewModel = new ViewModelProvider.AndroidViewModelFactory(getApplication())
+                .create(FavouriteViewModel.class);
+        favouriteViewModel.getAllFavourites().observe(this, favourites -> {
+            this.favourites.clear();
+            this.favourites.addAll(favourites);
+        });
     }
 
     @Override
