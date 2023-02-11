@@ -11,6 +11,8 @@ import androidx.fragment.app.FragmentManager;
 import android.Manifest;
 import android.content.pm.PackageManager;
 import android.os.Bundle;
+import android.view.Menu;
+import android.view.MenuItem;
 
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
@@ -19,6 +21,7 @@ import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.darshan09200.maps.databinding.ActivityMapsBinding;
+import com.google.android.material.bottomsheet.BottomSheetDialog;
 
 public class MapsActivity extends AppCompatActivity {
 
@@ -29,7 +32,7 @@ public class MapsActivity extends AppCompatActivity {
 
     private ActivityMapsBinding binding;
     private boolean locationPermissionGranted = false;
-
+    BottomSheetFragment bottomSheetFragment = new BottomSheetFragment();;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -101,5 +104,24 @@ public class MapsActivity extends AppCompatActivity {
             super.onRequestPermissionsResult(requestCode, permissions, grantResults);
         }
         updateLocationUI();
+    }
+
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        // Inflate the menu; this adds items to the action bar if it is present.
+        getMenuInflater().inflate(R.menu.menu, menu);
+        return true;
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        int id = item.getItemId();
+
+        if (id == R.id.favourite) {
+            bottomSheetFragment.show(getSupportFragmentManager(), bottomSheetFragment.getTag());
+            return true;
+        }
+
+        return super.onOptionsItemSelected(item);
     }
 }
