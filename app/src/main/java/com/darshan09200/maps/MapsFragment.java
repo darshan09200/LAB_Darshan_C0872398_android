@@ -51,6 +51,7 @@ public class MapsFragment extends Fragment implements  GoogleMap.OnMyLocationBut
 
             googleMap.setMyLocationEnabled(true);
             googleMap.getUiSettings().setZoomControlsEnabled(true);
+            googleMap.getUiSettings().setTiltGesturesEnabled(false);
 
             mMap.setOnPoiClickListener(pointOfInterest -> {
                 System.out.println(pointOfInterest.name);

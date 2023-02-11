@@ -1,5 +1,9 @@
 package com.darshan09200.maps;
 
+import androidx.activity.result.ActivityResult;
+import androidx.activity.result.ActivityResultCallback;
+import androidx.activity.result.ActivityResultLauncher;
+import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
@@ -9,6 +13,7 @@ import androidx.fragment.app.FragmentActivity;
 import androidx.fragment.app.FragmentManager;
 
 import android.Manifest;
+import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.os.Bundle;
 import android.view.Menu;
@@ -21,18 +26,36 @@ import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.darshan09200.maps.databinding.ActivityMapsBinding;
+import com.google.android.libraries.places.api.Places;
+import com.google.android.libraries.places.api.model.Place;
+import com.google.android.libraries.places.widget.Autocomplete;
+import com.google.android.libraries.places.widget.model.AutocompleteActivityMode;
 import com.google.android.material.bottomsheet.BottomSheetDialog;
+
+import java.util.Arrays;
+import java.util.List;
+import java.util.Properties;
 
 public class MapsActivity extends AppCompatActivity {
 
     private static final int PERMISSIONS_REQUEST_ACCESS_FINE_LOCATION = 1;
+    private static final int AUTOCOMPLETE_REQUEST_CODE = 2;
 
     private static final String PERMISSION_FRAGMENT = "permissions";
     private static final String MAPS_FRAGMENT = "maps";
 
     private ActivityMapsBinding binding;
     private boolean locationPermissionGranted = false;
-    BottomSheetFragment bottomSheetFragment = new BottomSheetFragment();;
+    BottomSheetFragment bottomSheetFragment = new BottomSheetFragment();
+
+    ActivityResultLauncher<Intent> autocompleteActivityResult = registerForActivityResult(
+            new ActivityResultContracts.StartActivityForResult(),
+            result -> {
+                if (result.getResultCode() == RESULT_OK) {
+                    Place place = Autocomplete.getPlaceFromIntent(result.getData());
+                    System.out.println("Place: " + place.getName() + ", " + place.getId());
+                }
+            });
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -44,6 +67,8 @@ public class MapsActivity extends AppCompatActivity {
 
         getLocationPermission();
         updateLocationUI();
+
+        Places.initialize(getApplicationContext(), getResources().getString(R.string.api_key));
     }
 
     @Override
@@ -54,7 +79,6 @@ public class MapsActivity extends AppCompatActivity {
     }
 
     private void updateLocationUI(){
-        System.out.println("locationPermissionGranted"+locationPermissionGranted);
         if (!locationPermissionGranted) {
             PermissionFragment fragment = new PermissionFragment();
             fragment.locationPermissionGranted = locationPermissionGranted;
@@ -75,11 +99,9 @@ public class MapsActivity extends AppCompatActivity {
          * device. The result of the permission request is handled by a callback,
          * onRequestPermissionsResult.
          */
-        System.out.println("check");
         if (ContextCompat.checkSelfPermission(this.getApplicationContext(),
                 android.Manifest.permission.ACCESS_FINE_LOCATION)
                 == PackageManager.PERMISSION_GRANTED) {
-            System.out.println("granted");
             locationPermissionGranted = true;
         } else {
             ActivityCompat.requestPermissions(this,
@@ -93,14 +115,13 @@ public class MapsActivity extends AppCompatActivity {
                                            @NonNull String[] permissions,
                                            @NonNull int[] grantResults) {
         locationPermissionGranted = false;
-        System.out.println(requestCode);
         if (requestCode
                 == PERMISSIONS_REQUEST_ACCESS_FINE_LOCATION) {// If request is cancelled, the result arrays are empty.
             if (grantResults.length > 0
                     && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
                 locationPermissionGranted = true;
             }
-        } else {
+        } else if (requestCode == AUTOCOMPLETE_REQUEST_CODE){
             super.onRequestPermissionsResult(requestCode, permissions, grantResults);
         }
         updateLocationUI();
@@ -119,6 +140,15 @@ public class MapsActivity extends AppCompatActivity {
 
         if (id == R.id.favourite) {
             bottomSheetFragment.show(getSupportFragmentManager(), bottomSheetFragment.getTag());
+            return true;
+        } else if (id == R.id.search){
+            List<Place.Field> fields = Arrays.asList(Place.Field.ID, Place.Field.NAME);
+
+            // Start the autocomplete intent.
+            Intent intent = new Autocomplete.IntentBuilder(AutocompleteActivityMode.FULLSCREEN, fields)
+                    .build(this);
+            autocompleteActivityResult.launch(intent);
+
             return true;
         }
 

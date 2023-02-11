@@ -7,6 +7,9 @@ android {
     namespace 'com.darshan09200.maps'
     compileSdk 33
 
+    def Properties properties = new Properties();
+    properties.load(project.rootProject.file("local.properties").newDataInputStream());
+
     defaultConfig {
         applicationId "com.darshan09200.maps"
         minSdk 26
@@ -15,6 +18,8 @@ android {
         versionName "1.0"
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
+
+        resValue "string", "api_key", properties.getProperty("MAPS_API_KEY", "")
     }
 
     buildTypes {
@@ -38,6 +43,7 @@ dependencies {
     implementation 'com.google.android.material:material:1.5.0'
     implementation 'com.google.android.gms:play-services-maps:18.0.2'
     implementation 'com.google.android.gms:play-services-location:17.0.0'
+    implementation 'com.google.android.libraries.places:places:3.0.0'
     implementation 'androidx.constraintlayout:constraintlayout:2.1.3'
     testImplementation 'junit:junit:4.13.2'
     androidTestImplementation 'androidx.test.ext:junit:1.1.3'
