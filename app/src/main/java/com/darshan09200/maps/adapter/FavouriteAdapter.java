@@ -33,7 +33,7 @@ public class FavouriteAdapter extends RecyclerView.Adapter<FavouriteAdapter.View
 
         Favourite favourite = favourites.get(position);
 
-        viewHolder.binding.favouriteName.setText((favourite.name.replace("\n", " ")));
+        viewHolder.binding.favouriteName.setText((favourite.getName()));
     }
 
     @Override

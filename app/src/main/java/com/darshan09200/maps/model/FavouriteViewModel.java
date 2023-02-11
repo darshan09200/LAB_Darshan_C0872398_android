@@ -29,8 +29,8 @@ public class FavouriteViewModel extends AndroidViewModel {
     public Favourite getFavourite(LatLng coordinate) {return databaseClient.getFavourite(coordinate);}
 
     public void insert(Favourite favourite) {
-        favourite.name = favourite.name.replace("\n", " ");
-        databaseClient.insert(favourite);}
+        databaseClient.insert(favourite);
+    }
     
     public void delete(Favourite favourite) {databaseClient.delete(favourite);}
 }

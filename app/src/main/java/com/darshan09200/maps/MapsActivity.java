@@ -55,15 +55,15 @@ public class MapsActivity extends AppCompatActivity {
                         Place place = Autocomplete.getPlaceFromIntent(data);
                         if (place.getLatLng() != null) {
                             Favourite favourite = new Favourite();
-                            favourite.id = place.getId();
+                            favourite.setId(place.getId());
                             favourite.setCoordinate(place.getLatLng());
-                            favourite.name = place.getName();
-                            favourite.updatedAt = new Date();
+                            favourite.setName(place.getName());
+                            favourite.setUpdatedAt(new Date());
 
                             MapsFragment mapsFragment = (MapsFragment) getSupportFragmentManager().findFragmentByTag(MAPS_FRAGMENT);
                             if (mapsFragment != null) {
-                                mapsFragment.addMarker(favourite.getCoordinate(), favourite.name, null);
-                                favourite.updatedAt = new Date();
+                                mapsFragment.addMarker(favourite.getCoordinate(), favourite.getName(), null);
+                                favourite.setUpdatedAt(new Date());
                                 mapsFragment.zoomAt(favourite.getCoordinate());
                             }
                             favouriteViewModel.insert(favourite);
@@ -245,7 +245,7 @@ public class MapsActivity extends AppCompatActivity {
         if (mapsFragment != null) {
             mapsFragment.clearMap();
             for (Favourite favourite : favourites) {
-                mapsFragment.addMarker(favourite.getCoordinate(), favourite.name, null);
+                mapsFragment.addMarker(favourite.getCoordinate(), favourite.getName(), null);
             }
         }
     }

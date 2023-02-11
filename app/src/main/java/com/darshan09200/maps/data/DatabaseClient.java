@@ -81,8 +81,8 @@ public class DatabaseClient {
         for (Favourite favourite : allFavourites.getValue()) {
 
             Location endPoint = new Location("end");
-            endPoint.setLatitude(favourite.latitude);
-            endPoint.setLongitude(favourite.longitude);
+            endPoint.setLatitude(favourite.getLatitude());
+            endPoint.setLongitude(favourite.getLongitude());
 
             double distance = startPoint.distanceTo(endPoint);
             System.out.println(distance);
@@ -95,9 +95,8 @@ public class DatabaseClient {
     }
 
 
-    public String insert(Favourite favourite) {
+    public void insert(Favourite favourite) {
         AppDatabase.databaseWriteExecutor.execute(() -> favouriteDao.insert(favourite));
-        return favourite.id;
     }
 
     public void delete(Favourite favourite) {

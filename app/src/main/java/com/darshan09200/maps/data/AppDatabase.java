@@ -9,7 +9,8 @@ import java.util.concurrent.Executors;
 
 @androidx.room.Database(
         entities = {Favourite.class},
-        version = 1
+        version = 1,
+        exportSchema = false
 )
 public abstract class AppDatabase extends RoomDatabase {
     public static final ExecutorService databaseWriteExecutor

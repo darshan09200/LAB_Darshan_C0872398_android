@@ -133,7 +133,7 @@ public class FavouriteBottomSheetFragment extends BottomSheetDialogFragment impl
         builder.setPositiveButton("Yes", (dialog, which) -> {
             favouriteViewModel.delete(favourite);
             binding.favouriteList.getAdapter().notifyItemRemoved(position);
-            Toast.makeText(getActivity(), favourite.name + " is deleted!", Toast.LENGTH_LONG).show();
+            Toast.makeText(getActivity(), favourite.getName() + " is deleted!", Toast.LENGTH_LONG).show();
         });
         builder.setNegativeButton("No", (dialog, which) -> binding.favouriteList.getAdapter().notifyItemChanged(position));
         AlertDialog alertDialog = builder.create();
@@ -143,7 +143,7 @@ public class FavouriteBottomSheetFragment extends BottomSheetDialogFragment impl
     @Override
     public void onItemClick(int position) {
         Favourite favourite = favourites.get(position);
-        favourite.updatedAt = new Date();
+        favourite.setUpdatedAt(new Date());
         favouriteViewModel.insert(favourite);
         ((MapsActivity) getActivity()).zoomAt(favourite.getCoordinate());
     }

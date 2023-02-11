@@ -90,9 +90,9 @@ public class MapsFragment extends Fragment implements GoogleMap.OnMarkerDragList
 
             googleMap.setOnPoiClickListener(pointOfInterest -> {
                 Favourite favourite = new Favourite();
-                favourite.id = pointOfInterest.placeId;
+                favourite.setId(pointOfInterest.placeId);
                 favourite.setCoordinate(pointOfInterest.latLng);
-                favourite.name = pointOfInterest.name;
+                favourite.setName(pointOfInterest.name);
                 ((MapsActivity) getActivity()).addToFavourite(favourite);
                 addMarker(pointOfInterest.latLng, pointOfInterest.name, null);
                 zoomAt(pointOfInterest.latLng);
@@ -100,7 +100,7 @@ public class MapsFragment extends Fragment implements GoogleMap.OnMarkerDragList
 
             googleMap.setOnMapLongClickListener(latLng -> {
                 Favourite favourite = getNearestPlace(latLng);
-                addMarker(favourite.getCoordinate(), favourite.name, null);
+                addMarker(favourite.getCoordinate(), favourite.getName(), null);
             });
 
             googleMap.setOnMarkerClickListener(marker -> {
@@ -281,11 +281,11 @@ public class MapsFragment extends Fragment implements GoogleMap.OnMarkerDragList
 
     public Favourite getNearestPlace(LatLng latLng) {
         Favourite favourite = new Favourite();
-        favourite.id = UUID.randomUUID().toString();
+        favourite.setId(UUID.randomUUID().toString());
         favourite.setCoordinate(latLng);
-        favourite.updatedAt = new Date();
+        favourite.setUpdatedAt(new Date());
         DateFormat dateFormat = new SimpleDateFormat("EEE, d MMM yyyy HH:mm:ss");
-        favourite.name = "Location: " + dateFormat.format(favourite.updatedAt);
+        favourite.setName("Location: " + dateFormat.format(favourite.getUpdatedAt()));
         Geocoder geocoder = new Geocoder(getActivity(), Locale.getDefault());
         try {
             List<Address> addresses = geocoder.getFromLocation(latLng.latitude, latLng.longitude, 1);
@@ -294,7 +294,7 @@ public class MapsFragment extends Fragment implements GoogleMap.OnMarkerDragList
                 String address = firstAddress.getAddressLine(0);
                 if (firstAddress.getThoroughfare() != null)
                     address = firstAddress.getThoroughfare();
-                favourite.name = address;
+                favourite.setName(address);
                 favourite.setCoordinate(new LatLng(firstAddress.getLatitude(), firstAddress.getLongitude()));
             }
         } catch (IOException e) {
@@ -312,7 +312,7 @@ public class MapsFragment extends Fragment implements GoogleMap.OnMarkerDragList
     public void onMarkerDragEnd(@NonNull Marker marker) {
         Favourite favourite = getNearestPlace(marker.getPosition());
         marker.setPosition(favourite.getCoordinate());
-        marker.setTitle(favourite.name);
+        marker.setTitle(favourite.getName());
         if (toDelete != null) favouriteViewModel.delete(toDelete);
         favouriteViewModel.insert(favourite);
         toDelete = null;
