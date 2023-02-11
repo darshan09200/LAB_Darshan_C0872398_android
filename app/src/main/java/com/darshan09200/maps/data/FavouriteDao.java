@@ -6,7 +6,6 @@ import androidx.room.Delete;
 import androidx.room.Insert;
 import androidx.room.OnConflictStrategy;
 import androidx.room.Query;
-import androidx.room.Update;
 
 import com.darshan09200.maps.model.Favourite;
 
@@ -24,5 +23,8 @@ public interface FavouriteDao {
     LiveData<List<Favourite>> getAllFavourites();
 
     @Query("SELECT * FROM favourite WHERE id == :id")
-    public abstract LiveData<Favourite> getFavourite(long id);
+    public abstract Favourite getFavourite(String id);
+
+    @Query("SELECT * FROM favourite WHERE name == :name")
+    public abstract Favourite getFavouriteByName(String name);
 }

@@ -19,10 +19,19 @@ public class Favourite {
 
     public String name;
 
-    @Embedded
-    public LatLng coordinate;
+    public Double latitude;
+    public Double longitude;
 
     @TypeConverters({DateConverter.class})
     public Date updatedAt;
+
+    public LatLng getCoordinate(){
+        return new LatLng(latitude, longitude);
+    }
+
+    public void setCoordinate(LatLng coordinate){
+        latitude = coordinate.latitude;
+        longitude = coordinate.longitude;
+    }
 }
 

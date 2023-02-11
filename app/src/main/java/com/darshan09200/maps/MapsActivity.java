@@ -26,6 +26,7 @@ import com.google.android.libraries.places.widget.model.AutocompleteActivityMode
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Date;
 import java.util.List;
 
 public class MapsActivity extends AppCompatActivity {
@@ -52,19 +53,22 @@ public class MapsActivity extends AppCompatActivity {
                         if (place.getLatLng() != null) {
                             Favourite favourite = new Favourite();
                             favourite.id = place.getId();
-                            favourite.coordinate = place.getLatLng();
+                            favourite.setCoordinate(place.getLatLng());
                             favourite.name = place.getName();
+                            favourite.updatedAt = new Date();
 
                             MapsFragment mapsFragment = (MapsFragment) getSupportFragmentManager().findFragmentByTag(MAPS_FRAGMENT);
                             if (mapsFragment != null) {
-                                mapsFragment.addMarker(favourite.coordinate, favourite.name, "");
-                                mapsFragment.zoomAt(favourite.coordinate);
+                                mapsFragment.addMarker(favourite.getCoordinate(), favourite.name, null);
+                                favourite.updatedAt = new Date();
+                                mapsFragment.zoomAt(favourite.getCoordinate());
                             }
                             favouriteViewModel.insert(favourite);
                         }
                     }
                 }
             });
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -91,7 +95,7 @@ public class MapsActivity extends AppCompatActivity {
         addObserver();
     }
 
-    void addObserver(){
+    void addObserver() {
         favouriteViewModel.getAllFavourites().observe(this, favourites -> {
             System.out.println("updated");
             this.favourites.clear();
@@ -101,19 +105,20 @@ public class MapsActivity extends AppCompatActivity {
         });
     }
 
-    private void updateLocationUI(){
-        Fragment permissionFragment = getSupportFragmentManager().findFragmentByTag(PERMISSION_FRAGMENT);
-        Fragment mapsFragment = getSupportFragmentManager().findFragmentByTag(MAPS_FRAGMENT) ;
-        if (!locationPermissionGranted) {
-            if(permissionFragment == null || !permissionFragment.isVisible()) {
-                PermissionFragment fragment = new PermissionFragment();
-                fragment.locationPermissionGranted = locationPermissionGranted;
-                getSupportFragmentManager().beginTransaction()
-                        .replace(R.id.map_container, fragment, PERMISSION_FRAGMENT)
-                        .commit();
-            }
-
-        } else if (mapsFragment == null || !mapsFragment.isVisible()){
+    private void updateLocationUI() {
+//        Fragment permissionFragment = getSupportFragmentManager().findFragmentByTag(PERMISSION_FRAGMENT);
+        Fragment mapsFragment = getSupportFragmentManager().findFragmentByTag(MAPS_FRAGMENT);
+//        if (!locationPermissionGranted) {
+//            if(permissionFragment == null || !permissionFragment.isVisible()) {
+//                PermissionFragment fragment = new PermissionFragment();
+//                fragment.locationPermissionGranted = locationPermissionGranted;
+//                getSupportFragmentManager().beginTransaction()
+//                        .replace(R.id.map_container, fragment, PERMISSION_FRAGMENT)
+//                        .commit();
+//            }
+//
+//        } else
+        if (mapsFragment == null || !mapsFragment.isVisible()) {
             getSupportFragmentManager().beginTransaction()
                     .add(R.id.map_container, new MapsFragment(), MAPS_FRAGMENT)
                     .commit();
@@ -148,7 +153,7 @@ public class MapsActivity extends AppCompatActivity {
                     && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
                 locationPermissionGranted = true;
             }
-        } else if (requestCode == AUTOCOMPLETE_REQUEST_CODE){
+        } else {
             super.onRequestPermissionsResult(requestCode, permissions, grantResults);
         }
         updateLocationUI();
@@ -168,7 +173,7 @@ public class MapsActivity extends AppCompatActivity {
         if (id == R.id.favourite) {
             favouriteBottomSheetFragment.show(getSupportFragmentManager(), favouriteBottomSheetFragment.getTag());
             return true;
-        } else if (id == R.id.search){
+        } else if (id == R.id.search) {
             List<Place.Field> fields = Arrays.asList(Place.Field.ID, Place.Field.NAME, Place.Field.LAT_LNG);
 
             // Start the autocomplete intent.
@@ -182,25 +187,33 @@ public class MapsActivity extends AppCompatActivity {
         return super.onOptionsItemSelected(item);
     }
 
-    void addToFavourite(Favourite favourite){
+    void addToFavourite(Favourite favourite) {
         favouriteViewModel.insert(favourite);
     }
 
-    void zoomAt(LatLng latLng){
-        favouriteBottomSheetFragment.dismiss();
+    void permissionDeclinedFallbackZoom(){
+        if (favourites.size() > 0) {
+            zoomAt(favourites.get(0).getCoordinate());
+        }
+    }
+
+    void zoomAt(LatLng latLng) {
+        if (favouriteBottomSheetFragment.isVisible()) {
+            favouriteBottomSheetFragment.dismiss();
+        }
 
         MapsFragment mapsFragment = (MapsFragment) getSupportFragmentManager().findFragmentByTag(MAPS_FRAGMENT);
-        if(mapsFragment != null) {
+        if (mapsFragment != null) {
             mapsFragment.zoomAt(latLng);
         }
     }
 
-    void updateAllMarkers(){
+    void updateAllMarkers() {
         MapsFragment mapsFragment = (MapsFragment) getSupportFragmentManager().findFragmentByTag(MAPS_FRAGMENT);
-        if(mapsFragment != null) {
+        if (mapsFragment != null) {
             mapsFragment.clearMap();
             for (Favourite favourite : favourites) {
-                mapsFragment.addMarker(favourite.coordinate, favourite.name, "");
+                mapsFragment.addMarker(favourite.getCoordinate(), favourite.name, null);
             }
         }
     }

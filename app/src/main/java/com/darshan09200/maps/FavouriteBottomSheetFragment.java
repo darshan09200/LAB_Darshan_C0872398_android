@@ -27,6 +27,7 @@ import com.google.android.material.bottomsheet.BottomSheetDialogFragment;
 import com.google.android.material.divider.MaterialDividerItemDecoration;
 
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 
 public class FavouriteBottomSheetFragment extends BottomSheetDialogFragment implements FavouriteAdapter.OnItemClickListener {
@@ -69,6 +70,7 @@ public class FavouriteBottomSheetFragment extends BottomSheetDialogFragment impl
 
         MaterialDividerItemDecoration dividerItemDecoration = new MaterialDividerItemDecoration(binding.favouriteList.getContext(),
                 layoutManager.getOrientation());
+        dividerItemDecoration.setDividerColorResource(getContext(), R.color.divider);
         binding.favouriteList.addItemDecoration(dividerItemDecoration);
 
         swipeHelper = new SwipeHelper(getActivity(), 150, binding.favouriteList) {
@@ -111,8 +113,9 @@ public class FavouriteBottomSheetFragment extends BottomSheetDialogFragment impl
     @Override
     public void onItemClick(int position) {
         Favourite favourite = favourites.get(position);
-
-        ((MapsActivity) getActivity()).zoomAt(favourite.coordinate);
+        favourite.updatedAt = new Date();
+        favouriteViewModel.insert(favourite);
+        ((MapsActivity) getActivity()).zoomAt(favourite.getCoordinate());
     }
 
     @Override

@@ -4,44 +4,49 @@ import android.Manifest;
 import android.content.pm.PackageManager;
 import android.location.Address;
 import android.location.Geocoder;
-import android.location.Location;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.core.app.ActivityCompat;
 import androidx.fragment.app.Fragment;
+import androidx.lifecycle.ViewModelProvider;
 
 import com.darshan09200.maps.databinding.FragmentMapsBinding;
 import com.darshan09200.maps.model.Favourite;
+import com.darshan09200.maps.model.FavouriteViewModel;
+import com.google.android.gms.location.FusedLocationProviderClient;
 import com.google.android.gms.location.LocationServices;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
-import com.google.android.gms.tasks.OnSuccessListener;
-import com.google.android.gms.location.FusedLocationProviderClient;
 
 import java.io.IOException;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.List;
 import java.util.Locale;
 import java.util.UUID;
 
-public class MapsFragment extends Fragment {
+public class MapsFragment extends Fragment implements GoogleMap.OnMarkerDragListener {
     private static final float ZOOM = 15;
-    private GoogleMap mMap;
     FusedLocationProviderClient mClient;
+    FavouriteViewModel favouriteViewModel;
+    private GoogleMap mMap;
     private FragmentMapsBinding binding;
-
     private LatLng userLocation;
 
-    private OnMapReadyCallback callback = new OnMapReadyCallback() {
+    private Favourite toDelete;
+
+    private final OnMapReadyCallback callback = new OnMapReadyCallback() {
 
         /**
          * Manipulates the map once available.
@@ -56,23 +61,34 @@ public class MapsFragment extends Fragment {
         public void onMapReady(final GoogleMap googleMap) {
             System.out.println("called maps ready");
             mMap = googleMap;
+
+            googleMap.setOnPoiClickListener(pointOfInterest -> {
+                Favourite favourite = new Favourite();
+                favourite.id = pointOfInterest.placeId;
+                favourite.setCoordinate(pointOfInterest.latLng);
+                favourite.name = pointOfInterest.name;
+                ((MapsActivity) getActivity()).addToFavourite(favourite);
+                addMarker(pointOfInterest.latLng, pointOfInterest.name, null);
+                zoomAt(pointOfInterest.latLng);
+            });
+
+            googleMap.setOnMapLongClickListener(latLng -> {
+                Favourite favourite = getNearestPlace(latLng);
+                addMarker(favourite.getCoordinate(), favourite.name, null);
+            });
+            googleMap.setOnMarkerDragListener(MapsFragment.this);
+
+            ((MapsActivity) getActivity()).updateAllMarkers();
+
+
             if (ActivityCompat.checkSelfPermission(getActivity(), Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(getActivity(), Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+                ((MapsActivity) getActivity()).permissionDeclinedFallbackZoom();
                 return;
             }
 
             googleMap.setMyLocationEnabled(true);
             googleMap.getUiSettings().setZoomControlsEnabled(true);
             googleMap.getUiSettings().setTiltGesturesEnabled(false);
-
-            mMap.setOnPoiClickListener(pointOfInterest -> {
-                Favourite favourite = new Favourite();
-                favourite.id = pointOfInterest.placeId;
-                favourite.coordinate = pointOfInterest.latLng;
-                favourite.name = pointOfInterest.name;
-                ((MapsActivity) getActivity()).addToFavourite(favourite);
-                addMarker(pointOfInterest.latLng, pointOfInterest.name, "");
-                zoomAt(pointOfInterest.latLng);
-            });
 
             mClient.getLastLocation().addOnSuccessListener(getActivity(), location -> {
                 if (location != null) {
@@ -83,12 +99,6 @@ public class MapsFragment extends Fragment {
                 }
             });
 
-            googleMap.setOnMapLongClickListener(latLng -> {
-                Favourite favourite = getNearestPlace(latLng);
-                addMarker(favourite.coordinate, favourite.name, "");
-            });
-
-            ((MapsActivity) getActivity()).updateAllMarkers();
         }
     };
 
@@ -96,6 +106,8 @@ public class MapsFragment extends Fragment {
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         mClient = LocationServices.getFusedLocationProviderClient(getActivity());
+
+        favouriteViewModel = new ViewModelProvider(getActivity()).get(FavouriteViewModel.class);
     }
 
     @Nullable
@@ -126,22 +138,29 @@ public class MapsFragment extends Fragment {
     public void addMarker(LatLng latLng, String title, String snippet) {
         MarkerOptions options = new MarkerOptions().position(latLng)
                 .title(title)
-                .snippet(snippet)
                 .draggable(true);
+        if (snippet != null) {
+            options = options.snippet(snippet);
+        }
+
         if (mMap != null) {
             mMap.addMarker(options);
         }
     }
 
     public void zoomAt(LatLng latLng) {
-        mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(latLng, ZOOM));
+        if (mMap != null) {
+            mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(latLng, ZOOM));
+        }
     }
 
     public Favourite getNearestPlace(LatLng latLng) {
         Favourite favourite = new Favourite();
         favourite.id = UUID.randomUUID().toString();
-        favourite.name = "Favourite";
-        favourite.coordinate = latLng;
+        favourite.setCoordinate(latLng);
+        favourite.updatedAt = new Date();
+        DateFormat dateFormat = new SimpleDateFormat("EEE, d MMM yyyy HH:mm:ss");
+        favourite.name = "Location: " + dateFormat.format(favourite.updatedAt);
         Geocoder geocoder = new Geocoder(getActivity(), Locale.getDefault());
         try {
             List<Address> addresses = geocoder.getFromLocation(latLng.latitude, latLng.longitude, 1);
@@ -151,7 +170,7 @@ public class MapsFragment extends Fragment {
                 if (firstAddress.getThoroughfare() != null)
                     address = firstAddress.getThoroughfare();
                 favourite.name = address;
-                favourite.coordinate = new LatLng(firstAddress.getLatitude(), firstAddress.getLongitude());
+                favourite.setCoordinate(new LatLng(firstAddress.getLatitude(), firstAddress.getLongitude()));
             }
         } catch (IOException e) {
             e.printStackTrace();
@@ -159,4 +178,27 @@ public class MapsFragment extends Fragment {
         return favourite;
     }
 
+    @Override
+    public void onMarkerDrag(@NonNull Marker marker) {
+
+    }
+
+    @Override
+    public void onMarkerDragEnd(@NonNull Marker marker) {
+        Favourite favourite = getNearestPlace(marker.getPosition());
+        marker.setPosition(favourite.getCoordinate());
+        marker.setTitle(favourite.name);
+        if (toDelete != null) favouriteViewModel.delete(toDelete);
+        favouriteViewModel.insert(favourite);
+        toDelete = null;
+    }
+
+    @Override
+    public void onMarkerDragStart(@NonNull Marker marker) {
+        Favourite favourite = favouriteViewModel.getFavourite(marker.getPosition());
+        if (favourite == null && !marker.getTitle().startsWith("Location:")) {
+            favourite = favouriteViewModel.getFavouriteByName(marker.getTitle());
+        }
+        toDelete = favourite;
+    }
 }
