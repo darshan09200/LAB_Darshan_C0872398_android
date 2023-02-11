@@ -2,13 +2,21 @@
 <menu xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto">
     <item
-        android:id="@+id/search"
-        android:title="Search"
-        android:icon="@drawable/search"
+        android:id="@+id/layer"
+        android:title="Select Layer"
+        android:icon="@drawable/layers"
         app:showAsAction="always"/>
+
     <item
         android:id="@+id/favourite"
         android:title="Show Favourites"
         android:icon="@drawable/favourites"
         app:showAsAction="always"/>
+
+    <item
+        android:id="@+id/search"
+        android:title="Search"
+        android:icon="@drawable/search"
+        app:showAsAction="always"/>
+
 </menu>

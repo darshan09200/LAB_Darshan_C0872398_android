@@ -158,6 +158,24 @@ public class MapsFragment extends Fragment implements GoogleMap.OnMarkerDragList
         }
     }
 
+    public void setMapType(int mapType){
+        if (mMap != null) {
+            int selectedMapType;
+            switch (mapType){
+                case 2:
+                    selectedMapType = GoogleMap.MAP_TYPE_TERRAIN;
+                    break;
+                case 1:
+                    selectedMapType = GoogleMap.MAP_TYPE_HYBRID;
+                    break;
+                case 0:
+                default:
+                    selectedMapType = GoogleMap.MAP_TYPE_NORMAL;
+            }
+            mMap.setMapType(selectedMapType);
+        }
+    }
+
     public Favourite getNearestPlace(LatLng latLng) {
         Favourite favourite = new Favourite();
         favourite.id = UUID.randomUUID().toString();

@@ -3,6 +3,7 @@ package com.darshan09200.maps;
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
+import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
@@ -17,6 +18,7 @@ import android.view.MenuItem;
 
 import com.darshan09200.maps.model.Favourite;
 import com.darshan09200.maps.model.FavouriteViewModel;
+import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.model.LatLng;
 import com.darshan09200.maps.databinding.ActivityMapsBinding;
 import com.google.android.libraries.places.api.Places;
@@ -28,6 +30,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicInteger;
 
 public class MapsActivity extends AppCompatActivity {
 
@@ -41,7 +44,7 @@ public class MapsActivity extends AppCompatActivity {
     private boolean locationPermissionGranted = false;
     private FavouriteViewModel favouriteViewModel;
     private final List<Favourite> favourites = new ArrayList<>();
-
+    private int selectedMapType = 0;
     FavouriteBottomSheetFragment favouriteBottomSheetFragment = new FavouriteBottomSheetFragment();
     ActivityResultLauncher<Intent> autocompleteActivityResult = registerForActivityResult(
             new ActivityResultContracts.StartActivityForResult(),
@@ -182,6 +185,25 @@ public class MapsActivity extends AppCompatActivity {
             autocompleteActivityResult.launch(intent);
 
             return true;
+        } else if (id == R.id.layer) {
+            AlertDialog.Builder builder = new AlertDialog.Builder(this);
+            builder.setTitle("Choose an animal");
+
+            String[] mapTypes = {"Normal", "Satellite", "Terrain"};
+            AtomicInteger selectedIndex = new AtomicInteger(selectedMapType);
+            builder.setSingleChoiceItems(mapTypes, selectedMapType, (dialog, which) -> {
+                selectedIndex.set(which);
+            });
+            builder.setPositiveButton("OK", (dialog, which) -> {
+                selectedMapType = selectedIndex.get();
+                MapsFragment mapsFragment = (MapsFragment) getSupportFragmentManager().findFragmentByTag(MAPS_FRAGMENT);
+                if (mapsFragment != null) {
+                    mapsFragment.setMapType(selectedMapType);
+                }
+            });
+            builder.setNegativeButton("Cancel", null);
+            AlertDialog dialog = builder.create();
+            dialog.show();
         }
 
         return super.onOptionsItemSelected(item);
@@ -191,7 +213,7 @@ public class MapsActivity extends AppCompatActivity {
         favouriteViewModel.insert(favourite);
     }
 
-    void permissionDeclinedFallbackZoom(){
+    void permissionDeclinedFallbackZoom() {
         if (favourites.size() > 0) {
             zoomAt(favourites.get(0).getCoordinate());
         }
