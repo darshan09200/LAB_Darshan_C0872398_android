@@ -24,12 +24,13 @@ import com.darshan09200.maps.model.FavouriteViewModel;
 import com.google.android.material.bottomsheet.BottomSheetBehavior;
 import com.google.android.material.bottomsheet.BottomSheetDialog;
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment;
+import com.google.android.material.divider.MaterialDividerItemDecoration;
 import com.google.android.material.snackbar.Snackbar;
 
 import java.util.ArrayList;
 import java.util.List;
 
-public class BottomSheetFragment extends BottomSheetDialogFragment {
+public class BottomSheetFragment extends BottomSheetDialogFragment implements FavouriteAdapter.OnItemClickListener {
 
     private BottomSheetDialog dialog;
     private BottomSheetBehavior<View> bottomSheetBehavior;
@@ -52,6 +53,8 @@ public class BottomSheetFragment extends BottomSheetDialogFragment {
             if (binding != null) {
                 binding.favouriteList.getAdapter().notifyDataSetChanged();
             }
+
+            ((MapsActivity) getActivity()).updateAllMarkers(favourites);
         });
 
         return dialog;
@@ -62,9 +65,13 @@ public class BottomSheetFragment extends BottomSheetDialogFragment {
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         binding = FragmentBottomsheetBinding.inflate(inflater, container, false);
 
-        RecyclerView.LayoutManager layoutManager = new LinearLayoutManager(getActivity());
+        LinearLayoutManager layoutManager = new LinearLayoutManager(getActivity());
         binding.favouriteList.setLayoutManager(layoutManager);
-        binding.favouriteList.setAdapter(new FavouriteAdapter(favourites));
+        binding.favouriteList.setAdapter(new FavouriteAdapter(favourites, this));
+
+        MaterialDividerItemDecoration dividerItemDecoration = new MaterialDividerItemDecoration(binding.favouriteList.getContext(),
+                layoutManager.getOrientation());
+        binding.favouriteList.addItemDecoration(dividerItemDecoration);
 
         swipeHelper = new SwipeHelper(getActivity(), 150, binding.favouriteList) {
             @Override
@@ -102,5 +109,12 @@ public class BottomSheetFragment extends BottomSheetDialogFragment {
         builder.setNegativeButton("No", (dialog, which) -> binding.favouriteList.getAdapter().notifyItemChanged(position));
         AlertDialog alertDialog = builder.create();
         alertDialog.show();
+    }
+
+    @Override
+    public void onItemClick(int position) {
+        Favourite favourite = favourites.get(position);
+
+        ((MapsActivity) getActivity()).zoomAt(favourite.coordinate);
     }
 }

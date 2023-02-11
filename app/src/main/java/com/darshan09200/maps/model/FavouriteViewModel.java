@@ -27,7 +27,5 @@ public class FavouriteViewModel extends AndroidViewModel {
     
     public void insert(Favourite favourite) {databaseClient.insert(favourite);}
     
-    public void update(Favourite favourite) {databaseClient.update(favourite);}
-    
     public void delete(Favourite favourite) {databaseClient.delete(favourite);}
 }

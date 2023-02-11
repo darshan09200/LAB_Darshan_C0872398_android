@@ -59,12 +59,16 @@ public class MapsActivity extends AppCompatActivity {
             result -> {
                 if (result.getResultCode() == RESULT_OK) {
                     Place place = Autocomplete.getPlaceFromIntent(result.getData());
-                    System.out.println("Place: " + place.getName() + ", " + place.getId());
 
                     Favourite favourite = new Favourite();
                     favourite.id = place.getId();
                     favourite.coordinate = place.getLatLng();
                     favourite.name = place.getName();
+
+                    MapsFragment mapsFragment = (MapsFragment) getSupportFragmentManager().findFragmentByTag(MAPS_FRAGMENT);
+                    if(mapsFragment != null) {
+                        mapsFragment.addMarker(favourite.coordinate, favourite.name, "");
+                    }
                     favouriteViewModel.insert(favourite);
                 }
             });
@@ -172,5 +176,28 @@ public class MapsActivity extends AppCompatActivity {
         }
 
         return super.onOptionsItemSelected(item);
+    }
+
+    void addToFavourite(Favourite favourite){
+        favouriteViewModel.insert(favourite);
+    }
+
+    void zoomAt(LatLng latLng){
+        bottomSheetFragment.dismiss();
+
+        MapsFragment mapsFragment = (MapsFragment) getSupportFragmentManager().findFragmentByTag(MAPS_FRAGMENT);
+        if(mapsFragment != null) {
+            mapsFragment.zoomAt(latLng);
+        }
+    }
+
+    void updateAllMarkers(List<Favourite> favourites){
+        MapsFragment mapsFragment = (MapsFragment) getSupportFragmentManager().findFragmentByTag(MAPS_FRAGMENT);
+        if(mapsFragment != null) {
+            mapsFragment.clearMap();
+            for (Favourite favourite : favourites) {
+                mapsFragment.addMarker(favourite.coordinate, favourite.name, "");
+            }
+        }
     }
 }

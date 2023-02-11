@@ -2,6 +2,8 @@ package com.darshan09200.maps;
 
 import android.Manifest;
 import android.content.pm.PackageManager;
+import android.location.Address;
+import android.location.Geocoder;
 import android.location.Location;
 import android.os.Bundle;
 import android.view.LayoutInflater;
@@ -15,6 +17,7 @@ import androidx.core.app.ActivityCompat;
 import androidx.fragment.app.Fragment;
 
 import com.darshan09200.maps.databinding.FragmentMapsBinding;
+import com.darshan09200.maps.model.Favourite;
 import com.google.android.gms.location.LocationServices;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
@@ -25,8 +28,12 @@ import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.location.FusedLocationProviderClient;
 
-public class MapsFragment extends Fragment implements  GoogleMap.OnMyLocationButtonClickListener,
-        GoogleMap.OnMyLocationClickListener{
+import java.io.IOException;
+import java.util.List;
+import java.util.Locale;
+import java.util.UUID;
+
+public class MapsFragment extends Fragment {
     private GoogleMap mMap;
     FusedLocationProviderClient mClient;
     private FragmentMapsBinding binding;
@@ -54,7 +61,12 @@ public class MapsFragment extends Fragment implements  GoogleMap.OnMyLocationBut
             googleMap.getUiSettings().setTiltGesturesEnabled(false);
 
             mMap.setOnPoiClickListener(pointOfInterest -> {
-                System.out.println(pointOfInterest.name);
+                Favourite favourite = new Favourite();
+                favourite.id = pointOfInterest.placeId;
+                favourite.coordinate = pointOfInterest.latLng;
+                favourite.name = pointOfInterest.name;
+                ((MapsActivity)getActivity()).addToFavourite(favourite);
+                addMarker(pointOfInterest.latLng, pointOfInterest.name, "");
             });
 
             mClient.getLastLocation().addOnSuccessListener(getActivity(), location -> {
@@ -63,23 +75,13 @@ public class MapsFragment extends Fragment implements  GoogleMap.OnMyLocationBut
                     mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(latLng, 15));
                 }
             });
+
+            googleMap.setOnMapLongClickListener(latLng -> {
+                Favourite favourite = getNearestPlace(latLng);
+                addMarker(favourite.coordinate, favourite.name, "");
+            });
         }
     };
-
-    @Override
-    public void onMyLocationClick(@NonNull Location location) {
-        Toast.makeText(getActivity(), "Current location:\n" + location, Toast.LENGTH_LONG)
-                .show();
-    }
-
-    @Override
-    public boolean onMyLocationButtonClick() {
-        Toast.makeText(getActivity(), "MyLocation button clicked", Toast.LENGTH_SHORT)
-                .show();
-        // Return false so that we don't consume the event and the default behavior still occurs
-        // (the camera animates to the user's current position).
-        return false;
-    }
 
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
@@ -106,5 +108,46 @@ public class MapsFragment extends Fragment implements  GoogleMap.OnMyLocationBut
         }
     }
 
+    public void clearMap(){
+        if(mMap != null){
+            mMap.clear();
+        }
+    }
+
+    public void addMarker(LatLng latLng, String title, String snippet) {
+        MarkerOptions options = new MarkerOptions().position(latLng)
+                .title(title)
+                .snippet(snippet)
+                .draggable(true);
+        if (mMap != null) {
+            mMap.addMarker(options);
+        }
+    }
+
+    public void zoomAt(LatLng latLng){
+        mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(latLng, 18.0f));
+    }
+
+    public Favourite getNearestPlace(LatLng latLng) {
+        Favourite favourite = new Favourite();
+        favourite.id = UUID.randomUUID().toString();
+        favourite.name = "Favourite";
+        favourite.coordinate = latLng;
+        Geocoder geocoder = new Geocoder(getActivity(), Locale.getDefault());
+        try {
+            List<Address> addresses = geocoder.getFromLocation(latLng.latitude, latLng.longitude, 1);
+            if (addresses != null && addresses.size() > 0) {
+                Address firstAddress = addresses.get(0);
+                String address = firstAddress.getAddressLine(0);
+                if (firstAddress.getThoroughfare() != null)
+                    address = firstAddress.getThoroughfare();
+                favourite.name = address;
+                favourite.coordinate = new LatLng(firstAddress.getLatitude(), firstAddress.getLongitude());
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return favourite;
+    }
 
 }

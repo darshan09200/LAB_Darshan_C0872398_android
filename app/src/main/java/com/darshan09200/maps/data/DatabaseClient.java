@@ -51,10 +51,6 @@ public class DatabaseClient {
         return favourite.id;
     }
 
-    public void update(Favourite favourite) {
-        AppDatabase.databaseWriteExecutor.execute(() -> favouriteDao.update(favourite));
-    }
-
     public void delete(Favourite favourite){
         AppDatabase.databaseWriteExecutor.execute(() -> favouriteDao.delete(favourite));
     }

@@ -15,19 +15,12 @@ import java.util.List;
 public class FavouriteAdapter extends RecyclerView.Adapter<FavouriteAdapter.ViewHolder> {
 
     private List<Favourite> favourites;
-    private Context context;
     private OnItemClickListener onItemClickListener;
 
-    public FavouriteAdapter(List<Favourite> favourites) {
+    public FavouriteAdapter(List<Favourite> favourites, OnItemClickListener onItemClickListener) {
         this.favourites = favourites;
+        this.onItemClickListener = onItemClickListener;
     }
-
-
-//    public FavouriteAdapter(List<Favourite> favourites, Context context, OnItemClickListener onItemClickListener) {
-//        this.favourites = favourites;
-//        this.context = context;
-//        this.onItemClickListener = onItemClickListener;
-//    }
 
 
     @Override
@@ -40,7 +33,7 @@ public class FavouriteAdapter extends RecyclerView.Adapter<FavouriteAdapter.View
 
         Favourite favourite = favourites.get(position);
 
-        viewHolder.binding.favouriteName.setText((favourite.name));
+        viewHolder.binding.favouriteName.setText((favourite.name.replace("\n", " ")));
     }
 
     @Override
@@ -55,6 +48,9 @@ public class FavouriteAdapter extends RecyclerView.Adapter<FavouriteAdapter.View
             super(binding.getRoot());
 
             this.binding = binding;
+            binding.getRoot().setOnClickListener(v -> {
+                onItemClickListener.onItemClick(getAdapterPosition());
+            });
         }
     }
 

@@ -17,9 +17,6 @@ public interface FavouriteDao {
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     void insert(Favourite favourite);
 
-    @Update
-    public void update(Favourite favourite);
-
     @Delete
     public void delete(Favourite favourite);
 
