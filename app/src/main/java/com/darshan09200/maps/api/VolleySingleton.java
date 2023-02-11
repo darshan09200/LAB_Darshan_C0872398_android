@@ -12,8 +12,8 @@ import java.util.HashMap;
 
 public class VolleySingleton {
     private static VolleySingleton instance;
-    private RequestQueue requestQueue;
     private static Context ctx;
+    private RequestQueue requestQueue;
 
     private VolleySingleton(Context context) {
         ctx = context;
@@ -27,6 +27,14 @@ public class VolleySingleton {
         return instance;
     }
 
+    public static HashMap<String, String> getDirection(JSONObject jsonObject) {
+        HashMap<String, String> distances = null;
+        VolleyParser directionParser = new VolleyParser();
+        distances = directionParser.parseDistance(jsonObject);
+
+        return distances;
+    }
+
     public RequestQueue getRequestQueue() {
         if (requestQueue == null) {
             requestQueue = Volley.newRequestQueue(ctx.getApplicationContext());
@@ -36,13 +44,5 @@ public class VolleySingleton {
 
     public <T> void addToRequestQueue(Request<T> req) {
         getRequestQueue().add(req);
-    }
-
-    public static HashMap<String, String> getDirection(JSONObject jsonObject) {
-        HashMap<String, String> distances = null;
-        VolleyParser directionParser = new VolleyParser();
-        distances = directionParser.parseDistance(jsonObject);
-
-        return distances;
     }
 }

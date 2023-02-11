@@ -1,6 +1,5 @@
 package com.darshan09200.maps.adapter;
 
-import android.content.Context;
 import android.view.LayoutInflater;
 import android.view.ViewGroup;
 
@@ -41,6 +40,10 @@ public class FavouriteAdapter extends RecyclerView.Adapter<FavouriteAdapter.View
         return favourites.size();
     }
 
+    public interface OnItemClickListener {
+        void onItemClick(int position);
+    }
+
     public class ViewHolder extends RecyclerView.ViewHolder {
         FavouriteItemBinding binding;
 
@@ -52,9 +55,5 @@ public class FavouriteAdapter extends RecyclerView.Adapter<FavouriteAdapter.View
                 onItemClickListener.onItemClick(getAdapterPosition());
             });
         }
-    }
-
-    public interface OnItemClickListener {
-        void onItemClick(int position);
     }
 }

@@ -1,9 +1,7 @@
 package com.darshan09200.maps;
 
 import android.Manifest;
-import android.annotation.SuppressLint;
 import android.content.Intent;
-import android.content.IntentSender;
 import android.content.pm.PackageManager;
 import android.location.Address;
 import android.location.Geocoder;
@@ -12,8 +10,6 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 
-import androidx.activity.result.ActivityResult;
-import androidx.activity.result.ActivityResultCallback;
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.IntentSenderRequest;
 import androidx.activity.result.contract.ActivityResultContracts;
@@ -46,11 +42,8 @@ import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.tasks.CancellationToken;
-import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.OnTokenCanceledListener;
 import com.google.android.gms.tasks.Task;
-import com.google.android.libraries.places.api.model.Place;
-import com.google.android.libraries.places.widget.Autocomplete;
 
 import java.io.IOException;
 import java.text.DateFormat;
@@ -71,7 +64,15 @@ public class MapsFragment extends Fragment implements GoogleMap.OnMarkerDragList
 
     private Favourite toDelete;
     private boolean isCheckingGps = false;
-
+    ActivityResultLauncher<IntentSenderRequest> gpsActivityResult = registerForActivityResult(
+            new ActivityResultContracts.StartIntentSenderForResult(),
+            result -> {
+                if (result.getResultCode() == MapsActivity.RESULT_OK) {
+                    userLocation = null;
+                    zoomToUserLocation();
+                }
+                isCheckingGps = false;
+            });
     private final OnMapReadyCallback callback = new OnMapReadyCallback() {
 
         /**
@@ -223,17 +224,6 @@ public class MapsFragment extends Fragment implements GoogleMap.OnMarkerDragList
             }
         });
     }
-
-    ActivityResultLauncher<IntentSenderRequest> gpsActivityResult = registerForActivityResult(
-            new ActivityResultContracts.StartIntentSenderForResult(),
-            result -> {
-                if (result.getResultCode() == MapsActivity.RESULT_OK) {
-                    userLocation = null;
-                    zoomToUserLocation();
-                }
-                isCheckingGps = false;
-            });
-
 
     private void enableGPS() {
         if (!isCheckingGps) {

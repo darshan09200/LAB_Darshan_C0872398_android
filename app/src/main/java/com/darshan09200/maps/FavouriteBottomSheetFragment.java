@@ -32,12 +32,11 @@ import java.util.List;
 
 public class FavouriteBottomSheetFragment extends BottomSheetDialogFragment implements FavouriteAdapter.OnItemClickListener {
 
+    private final List<Favourite> favourites = new ArrayList<>();
     private BottomSheetDialog dialog;
     private BottomSheetBehavior<View> bottomSheetBehavior;
     private FragmentFavouriteBottomsheetBinding binding;
     private FavouriteViewModel favouriteViewModel;
-    private final List<Favourite> favourites = new ArrayList<>();
-
     private SwipeHelper swipeHelper;
 
     @NonNull
@@ -47,7 +46,7 @@ public class FavouriteBottomSheetFragment extends BottomSheetDialogFragment impl
 
         favouriteViewModel = new ViewModelProvider(getActivity()).get(FavouriteViewModel.class);
         favouriteViewModel.getAllFavourites().observe(this, favourites -> {
-            if(favourites.size() == 0 && this.favourites.size() > 0){
+            if (favourites.size() == 0 && this.favourites.size() > 0) {
                 FavouriteBottomSheetFragment.this.dismiss();
                 return;
             }

@@ -12,12 +12,11 @@ import com.google.android.gms.maps.model.LatLng;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
-import java.util.concurrent.atomic.AtomicReference;
 
 public class DatabaseClient {
+    private static DatabaseClient mInstance;
     private final AppDatabase appDatabase;
     private final Context context;
-    private static DatabaseClient mInstance;
     private final FavouriteDao favouriteDao;
 
     private final LiveData<List<Favourite>> allFavourites;
@@ -60,6 +59,7 @@ public class DatabaseClient {
         }
         return result;
     }
+
     public Favourite getFavouriteByName(String name) {
         Future<Favourite> future = AppDatabase.databaseWriteExecutor.submit(() -> {
             return favouriteDao.getFavouriteByName(name);

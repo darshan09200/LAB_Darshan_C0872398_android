@@ -22,15 +22,27 @@ public class FavouriteViewModel extends AndroidViewModel {
         allFavourites = databaseClient.getAllFavourites();
     }
 
-    public LiveData<List<Favourite>> getAllFavourites() {return allFavourites;}
+    public LiveData<List<Favourite>> getAllFavourites() {
+        return allFavourites;
+    }
 
-    public Favourite getFavourite(String id) {return databaseClient.getFavourite(id);}
-    public Favourite getFavouriteByName(String name) {return databaseClient.getFavouriteByName(name);}
-    public Favourite getFavourite(LatLng coordinate) {return databaseClient.getFavourite(coordinate);}
+    public Favourite getFavourite(String id) {
+        return databaseClient.getFavourite(id);
+    }
+
+    public Favourite getFavouriteByName(String name) {
+        return databaseClient.getFavouriteByName(name);
+    }
+
+    public Favourite getFavourite(LatLng coordinate) {
+        return databaseClient.getFavourite(coordinate);
+    }
 
     public void insert(Favourite favourite) {
         databaseClient.insert(favourite);
     }
-    
-    public void delete(Favourite favourite) {databaseClient.delete(favourite);}
+
+    public void delete(Favourite favourite) {
+        databaseClient.delete(favourite);
+    }
 }

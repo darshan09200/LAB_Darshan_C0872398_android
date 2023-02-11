@@ -1,5 +1,11 @@
 package com.darshan09200.maps;
 
+import android.content.Intent;
+import android.content.pm.PackageManager;
+import android.os.Bundle;
+import android.view.Menu;
+import android.view.MenuItem;
+
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
@@ -10,17 +16,10 @@ import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
 import androidx.lifecycle.ViewModelProvider;
 
-import android.content.Intent;
-import android.content.pm.PackageManager;
-import android.os.Bundle;
-import android.view.Menu;
-import android.view.MenuItem;
-
+import com.darshan09200.maps.databinding.ActivityMapsBinding;
 import com.darshan09200.maps.model.Favourite;
 import com.darshan09200.maps.model.FavouriteViewModel;
-import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.model.LatLng;
-import com.darshan09200.maps.databinding.ActivityMapsBinding;
 import com.google.android.libraries.places.api.Places;
 import com.google.android.libraries.places.api.model.Place;
 import com.google.android.libraries.places.widget.Autocomplete;
@@ -39,13 +38,11 @@ public class MapsActivity extends AppCompatActivity {
 
     private static final String PERMISSION_FRAGMENT = "permissions";
     private static final String MAPS_FRAGMENT = "maps";
-
+    private final List<Favourite> favourites = new ArrayList<>();
+    FavouriteBottomSheetFragment favouriteBottomSheetFragment = new FavouriteBottomSheetFragment();
     private ActivityMapsBinding binding;
     private boolean locationPermissionGranted = false;
     private FavouriteViewModel favouriteViewModel;
-    private final List<Favourite> favourites = new ArrayList<>();
-    private int selectedMapType = 0;
-    FavouriteBottomSheetFragment favouriteBottomSheetFragment = new FavouriteBottomSheetFragment();
     ActivityResultLauncher<Intent> autocompleteActivityResult = registerForActivityResult(
             new ActivityResultContracts.StartActivityForResult(),
             result -> {
@@ -71,6 +68,7 @@ public class MapsActivity extends AppCompatActivity {
                     }
                 }
             });
+    private int selectedMapType = 0;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
