@@ -12,7 +12,7 @@ import com.google.android.gms.maps.model.LatLng;
 import java.util.List;
 
 public class FavouriteViewModel extends AndroidViewModel {
-    private DatabaseClient databaseClient;
+    private final DatabaseClient databaseClient;
     private final LiveData<List<Favourite>> allFavourites;
 
     public FavouriteViewModel(@NonNull Application application) {

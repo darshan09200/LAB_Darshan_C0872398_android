@@ -15,12 +15,12 @@ import java.util.concurrent.Future;
 import java.util.concurrent.atomic.AtomicReference;
 
 public class DatabaseClient {
-    private AppDatabase appDatabase;
-    private Context context;
+    private final AppDatabase appDatabase;
+    private final Context context;
     private static DatabaseClient mInstance;
-    private FavouriteDao favouriteDao;
+    private final FavouriteDao favouriteDao;
 
-    private LiveData<List<Favourite>> allFavourites;
+    private final LiveData<List<Favourite>> allFavourites;
 
     public DatabaseClient(Context context) {
         this.context = context;

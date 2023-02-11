@@ -34,19 +34,17 @@ import java.util.stream.Collectors;
  * in this method you pass the recyclerView viewHolder and the list of buttons you want to have
  */
 public abstract class SwipeHelper extends ItemTouchHelper.SimpleCallback {
-    /**
-     * Creates a Callback for the given drag and swipe allowance. These values serve as*/
 
     private final int buttonWidth;
-    private RecyclerView recyclerView;
+    private final RecyclerView recyclerView;
     private List<SwipeUnderlayButton> buttonList;
-    private GestureDetector gestureDetector;
+    private final GestureDetector gestureDetector;
     private int swipePosition = -1;
     private float swipeThreshold = 0.5f;
-    private Map<Integer, List<SwipeUnderlayButton>> buttonBuffer;
-    private Queue<Integer> removeQueue;
+    private final Map<Integer, List<SwipeUnderlayButton>> buttonBuffer;
+    private final Queue<Integer> removeQueue;
 
-    private GestureDetector.SimpleOnGestureListener gestureListener = new GestureDetector.SimpleOnGestureListener() {
+    private final GestureDetector.SimpleOnGestureListener gestureListener = new GestureDetector.SimpleOnGestureListener() {
         @Override
         public boolean onSingleTapUp(MotionEvent e) {
             for (SwipeUnderlayButton button : buttonList) {
@@ -57,7 +55,7 @@ public abstract class SwipeHelper extends ItemTouchHelper.SimpleCallback {
         }
     };
 
-    private View.OnTouchListener onTouchListener = new View.OnTouchListener() {
+    private final View.OnTouchListener onTouchListener = new View.OnTouchListener() {
         @Override
         public boolean onTouch(View v, MotionEvent event) {
             if (swipePosition < 0) return false;
@@ -100,13 +98,17 @@ public abstract class SwipeHelper extends ItemTouchHelper.SimpleCallback {
      * The class SwipeUnderlayButton is for creating underlay buttons
      */
     protected class SwipeUnderlayButton {
-        private Context context;
-        private String text;
-        private int imageResId, textSize, color, position, cornerSize;
+        private final Context context;
+        private final String text;
+        private final int imageResId;
+        private final int textSize;
+        private final int color;
+        private int position;
+        private final int cornerSize;
         private RectF clickRegion;
-        private SwipeUnderlayButtonClickListener listener;
-        private Resources resources;
-        private SwipeDirection swipeDirection;
+        private final SwipeUnderlayButtonClickListener listener;
+        private final Resources resources;
+        private final SwipeDirection swipeDirection;
 
         /**
          * SwipeUnderlayButton is used to create underlay buttons in swipe action

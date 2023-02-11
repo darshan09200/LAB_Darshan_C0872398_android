@@ -14,8 +14,8 @@ import java.util.List;
 
 public class FavouriteAdapter extends RecyclerView.Adapter<FavouriteAdapter.ViewHolder> {
 
-    private List<Favourite> favourites;
-    private OnItemClickListener onItemClickListener;
+    private final List<Favourite> favourites;
+    private final OnItemClickListener onItemClickListener;
 
     public FavouriteAdapter(List<Favourite> favourites, OnItemClickListener onItemClickListener) {
         this.favourites = favourites;

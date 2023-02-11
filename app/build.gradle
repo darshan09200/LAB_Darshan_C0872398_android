@@ -7,8 +7,8 @@ android {
     namespace 'com.darshan09200.maps'
     compileSdk 33
 
-    def Properties properties = new Properties();
-    properties.load(project.rootProject.file("local.properties").newDataInputStream());
+    Properties properties = new Properties()
+    properties.load(project.rootProject.file("local.properties").newDataInputStream())
 
     defaultConfig {
         applicationId "com.darshan09200.maps"
@@ -48,12 +48,15 @@ dependencies {
     implementation 'com.google.android.gms:play-services-maps:18.1.0'
     implementation 'com.google.android.gms:play-services-location:17.0.0'
     implementation 'com.google.android.libraries.places:places:3.0.0'
+    implementation 'com.google.maps.android:android-maps-utils:2.0.0'
 
     implementation "androidx.room:room-runtime:$room_version"
     annotationProcessor "androidx.room:room-compiler:$room_version"
 
     implementation "androidx.lifecycle:lifecycle-viewmodel:$lifecycle_version"
     implementation "androidx.lifecycle:lifecycle-livedata:$lifecycle_version"
+
+    implementation 'com.android.volley:volley:1.1.1'
 
     testImplementation 'junit:junit:4.13.2'
     androidTestImplementation 'androidx.test.ext:junit:1.1.3'

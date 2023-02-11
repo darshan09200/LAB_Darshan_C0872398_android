@@ -17,14 +17,14 @@ public interface FavouriteDao {
     void insert(Favourite favourite);
 
     @Delete
-    public void delete(Favourite favourite);
+    void delete(Favourite favourite);
 
     @Query("SELECT * FROM favourite ORDER BY updatedAt DESC")
     LiveData<List<Favourite>> getAllFavourites();
 
     @Query("SELECT * FROM favourite WHERE id == :id")
-    public abstract Favourite getFavourite(String id);
+    Favourite getFavourite(String id);
 
     @Query("SELECT * FROM favourite WHERE name == :name")
-    public abstract Favourite getFavouriteByName(String name);
+    Favourite getFavouriteByName(String name);
 }

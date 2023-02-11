@@ -15,6 +15,9 @@ import androidx.core.app.ActivityCompat;
 import androidx.fragment.app.Fragment;
 import androidx.lifecycle.ViewModelProvider;
 
+import com.android.volley.Request;
+import com.android.volley.toolbox.JsonObjectRequest;
+import com.darshan09200.maps.api.VolleySingleton;
 import com.darshan09200.maps.databinding.FragmentMapsBinding;
 import com.darshan09200.maps.model.Favourite;
 import com.darshan09200.maps.model.FavouriteViewModel;
@@ -32,6 +35,7 @@ import java.io.IOException;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.UUID;
@@ -76,6 +80,12 @@ public class MapsFragment extends Fragment implements GoogleMap.OnMarkerDragList
                 Favourite favourite = getNearestPlace(latLng);
                 addMarker(favourite.getCoordinate(), favourite.name, null);
             });
+
+            googleMap.setOnMarkerClickListener(marker -> {
+                generateDirectionDetails(marker);
+                return false;
+            });
+
             googleMap.setOnMarkerDragListener(MapsFragment.this);
 
             ((MapsActivity) getActivity()).updateAllMarkers();
@@ -93,8 +103,7 @@ public class MapsFragment extends Fragment implements GoogleMap.OnMarkerDragList
             mClient.getLastLocation().addOnSuccessListener(getActivity(), location -> {
                 if (location != null) {
                     LatLng latLng = new LatLng(location.getLatitude(), location.getLongitude());
-                    if (userLocation == null)
-                        zoomAt(latLng);
+                    if (userLocation == null) zoomAt(latLng);
                     userLocation = latLng;
                 }
             });
@@ -112,9 +121,7 @@ public class MapsFragment extends Fragment implements GoogleMap.OnMarkerDragList
 
     @Nullable
     @Override
-    public View onCreateView(@NonNull LayoutInflater inflater,
-                             @Nullable ViewGroup container,
-                             @Nullable Bundle savedInstanceState) {
+    public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         binding = FragmentMapsBinding.inflate(inflater, container, false);
         return binding.getRoot();
     }
@@ -122,8 +129,7 @@ public class MapsFragment extends Fragment implements GoogleMap.OnMarkerDragList
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
-        SupportMapFragment mapFragment =
-                (SupportMapFragment) getChildFragmentManager().findFragmentById(R.id.map);
+        SupportMapFragment mapFragment = (SupportMapFragment) getChildFragmentManager().findFragmentById(R.id.map);
         if (mapFragment != null) {
             mapFragment.getMapAsync(callback);
         }
@@ -136,9 +142,7 @@ public class MapsFragment extends Fragment implements GoogleMap.OnMarkerDragList
     }
 
     public void addMarker(LatLng latLng, String title, String snippet) {
-        MarkerOptions options = new MarkerOptions().position(latLng)
-                .title(title)
-                .draggable(true);
+        MarkerOptions options = new MarkerOptions().position(latLng).title(title).draggable(true);
         if (snippet != null) {
             options = options.snippet(snippet);
         }
@@ -200,5 +204,30 @@ public class MapsFragment extends Fragment implements GoogleMap.OnMarkerDragList
             favourite = favouriteViewModel.getFavouriteByName(marker.getTitle());
         }
         toDelete = favourite;
+    }
+
+    private String getDirectionUrl(LatLng start, LatLng end) {
+        StringBuilder googleDirectionUrl = new StringBuilder("https://maps.googleapis.com/maps/api/directions/json?");
+        googleDirectionUrl.append("origin=" + start.latitude + "," + start.longitude);
+        googleDirectionUrl.append(("&destination=" + end.latitude + "," + end.longitude));
+        googleDirectionUrl.append("&key=" + getString(com.darshan09200.maps.R.string.api_key));
+        return googleDirectionUrl.toString();
+    }
+
+    private void generateDirectionDetails(Marker marker) {
+        if (userLocation != null) {
+            LatLng start = userLocation;
+            LatLng end = marker.getPosition();
+            JsonObjectRequest jsonObjectRequest = new JsonObjectRequest(
+                    Request.Method.GET,
+                    getDirectionUrl(start, end), null,
+                    response -> {
+                        HashMap<String, String> details = VolleySingleton.getDirection(response);
+                        marker.setSnippet("Duration: " + details.get("duration") + "; Distance:" + details.get("distance"));
+                        marker.showInfoWindow();
+                    },
+                    null);
+            VolleySingleton.getInstance(getActivity().getApplicationContext()).addToRequestQueue(jsonObjectRequest);
+        }
     }
 }
