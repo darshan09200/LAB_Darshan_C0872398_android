@@ -20,8 +20,6 @@ import androidx.core.content.ContextCompat;
 import androidx.recyclerview.widget.ItemTouchHelper;
 import androidx.recyclerview.widget.RecyclerView;
 
-import com.darshan09200.maps.adapter.FavouriteAdapter;
-
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedList;
@@ -52,7 +50,7 @@ public abstract class SwipeHelper extends ItemTouchHelper.SimpleCallback {
         @Override
         public boolean onSingleTapUp(MotionEvent e) {
             for (SwipeUnderlayButton button : buttonList) {
-                if (button.onclick(e.getX(), e.getY()))
+                if (button.onClick(e.getX(), e.getY()))
                     break;
             }
             return true;
@@ -132,11 +130,13 @@ public abstract class SwipeHelper extends ItemTouchHelper.SimpleCallback {
             this.swipeDirection = swipeDirection;
         }
 
-        public boolean onclick(float x, float y) {
+        public boolean onClick(float x, float y) {
             if (clickRegion != null && clickRegion.contains(x, y)) {
                 listener.onClick(position);
+                System.out.println("yes");
                 return true;
             }
+            System.out.println("no");
             return false;
         }
 

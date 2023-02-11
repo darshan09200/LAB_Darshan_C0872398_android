@@ -4,15 +4,18 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:animateLayoutChanges="true"
-    android:minHeight="100dp">
+    android:minHeight="100dp"
+    android:paddingVertical="8dp"
+    android:background="@drawable/rounded_dialog">
 
     <TextView
-        android:id="@+id/header"
+        android:id="@+id/favourite_header"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:padding="8dp"
         android:text="Favourites"
-        android:textSize="24sp"
         android:textAlignment="center"
+        android:textSize="24sp"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
@@ -23,5 +26,5 @@
         android:layout_height="wrap_content"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/header" />
+        app:layout_constraintTop_toBottomOf="@id/favourite_header" />
 </androidx.constraintlayout.widget.ConstraintLayout>

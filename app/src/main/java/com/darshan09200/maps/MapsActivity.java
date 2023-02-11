@@ -1,20 +1,14 @@
 package com.darshan09200.maps;
 
-import androidx.activity.result.ActivityResult;
-import androidx.activity.result.ActivityResultCallback;
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.appcompat.widget.Toolbar;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
-import androidx.fragment.app.FragmentActivity;
-import androidx.fragment.app.FragmentManager;
 import androidx.lifecycle.ViewModelProvider;
 
-import android.Manifest;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.os.Bundle;
@@ -23,25 +17,16 @@ import android.view.MenuItem;
 
 import com.darshan09200.maps.model.Favourite;
 import com.darshan09200.maps.model.FavouriteViewModel;
-import com.google.android.gms.common.api.Status;
-import com.google.android.gms.maps.CameraUpdateFactory;
-import com.google.android.gms.maps.GoogleMap;
-import com.google.android.gms.maps.OnMapReadyCallback;
-import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.LatLng;
-import com.google.android.gms.maps.model.MarkerOptions;
 import com.darshan09200.maps.databinding.ActivityMapsBinding;
 import com.google.android.libraries.places.api.Places;
 import com.google.android.libraries.places.api.model.Place;
 import com.google.android.libraries.places.widget.Autocomplete;
-import com.google.android.libraries.places.widget.AutocompleteActivity;
 import com.google.android.libraries.places.widget.model.AutocompleteActivityMode;
-import com.google.android.material.bottomsheet.BottomSheetDialog;
 
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.Properties;
 
 public class MapsActivity extends AppCompatActivity {
 
@@ -56,7 +41,7 @@ public class MapsActivity extends AppCompatActivity {
     private FavouriteViewModel favouriteViewModel;
     private final List<Favourite> favourites = new ArrayList<>();
 
-    BottomSheetFragment bottomSheetFragment = new BottomSheetFragment();
+    FavouriteBottomSheetFragment favouriteBottomSheetFragment = new FavouriteBottomSheetFragment();
     ActivityResultLauncher<Intent> autocompleteActivityResult = registerForActivityResult(
             new ActivityResultContracts.StartActivityForResult(),
             result -> {
@@ -181,7 +166,7 @@ public class MapsActivity extends AppCompatActivity {
         int id = item.getItemId();
 
         if (id == R.id.favourite) {
-            bottomSheetFragment.show(getSupportFragmentManager(), bottomSheetFragment.getTag());
+            favouriteBottomSheetFragment.show(getSupportFragmentManager(), favouriteBottomSheetFragment.getTag());
             return true;
         } else if (id == R.id.search){
             List<Place.Field> fields = Arrays.asList(Place.Field.ID, Place.Field.NAME, Place.Field.LAT_LNG);
@@ -202,7 +187,7 @@ public class MapsActivity extends AppCompatActivity {
     }
 
     void zoomAt(LatLng latLng){
-        bottomSheetFragment.dismiss();
+        favouriteBottomSheetFragment.dismiss();
 
         MapsFragment mapsFragment = (MapsFragment) getSupportFragmentManager().findFragmentByTag(MAPS_FRAGMENT);
         if(mapsFragment != null) {

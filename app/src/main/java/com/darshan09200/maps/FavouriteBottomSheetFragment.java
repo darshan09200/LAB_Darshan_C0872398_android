@@ -17,25 +17,23 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.darshan09200.maps.adapter.FavouriteAdapter;
-import com.darshan09200.maps.databinding.FragmentBottomsheetBinding;
+import com.darshan09200.maps.databinding.FragmentFavouriteBottomsheetBinding;
 import com.darshan09200.maps.helper.SwipeHelper;
-import com.darshan09200.maps.helper.SwipeUnderlayButtonClickListener;
 import com.darshan09200.maps.model.Favourite;
 import com.darshan09200.maps.model.FavouriteViewModel;
 import com.google.android.material.bottomsheet.BottomSheetBehavior;
 import com.google.android.material.bottomsheet.BottomSheetDialog;
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment;
 import com.google.android.material.divider.MaterialDividerItemDecoration;
-import com.google.android.material.snackbar.Snackbar;
 
 import java.util.ArrayList;
 import java.util.List;
 
-public class BottomSheetFragment extends BottomSheetDialogFragment implements FavouriteAdapter.OnItemClickListener {
+public class FavouriteBottomSheetFragment extends BottomSheetDialogFragment implements FavouriteAdapter.OnItemClickListener {
 
     private BottomSheetDialog dialog;
     private BottomSheetBehavior<View> bottomSheetBehavior;
-    private FragmentBottomsheetBinding binding;
+    private FragmentFavouriteBottomsheetBinding binding;
     private FavouriteViewModel favouriteViewModel;
     private final List<Favourite> favourites = new ArrayList<>();
 
@@ -63,7 +61,7 @@ public class BottomSheetFragment extends BottomSheetDialogFragment implements Fa
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
-        binding = FragmentBottomsheetBinding.inflate(inflater, container, false);
+        binding = FragmentFavouriteBottomsheetBinding.inflate(inflater, container, false);
 
         LinearLayoutManager layoutManager = new LinearLayoutManager(getActivity());
         binding.favouriteList.setLayoutManager(layoutManager);
@@ -83,7 +81,7 @@ public class BottomSheetFragment extends BottomSheetDialogFragment implements Fa
                         0,
                         Color.parseColor("#f44336"),
                         SwipeDirection.LEFT,
-                        BottomSheetFragment.this::deleteFavourite));
+                        FavouriteBottomSheetFragment.this::deleteFavourite));
             }
         };
         return binding.getRoot();
@@ -96,6 +94,7 @@ public class BottomSheetFragment extends BottomSheetDialogFragment implements Fa
     }
 
     private void deleteFavourite(int position) {
+        System.out.println("called position");
         Favourite favourite = favourites.get(position);
         AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
         builder.setTitle("Are you sure you want to delete from favourite?");
@@ -122,4 +121,5 @@ public class BottomSheetFragment extends BottomSheetDialogFragment implements Fa
 
         ((MapsActivity)getActivity()).addObserver();
     }
+
 }
