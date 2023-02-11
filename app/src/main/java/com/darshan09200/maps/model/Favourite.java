@@ -1,12 +1,11 @@
 package com.darshan09200.maps.model;
 
 import androidx.annotation.NonNull;
-import androidx.room.Embedded;
 import androidx.room.Entity;
 import androidx.room.PrimaryKey;
 import androidx.room.TypeConverters;
 
-import com.darshan09200.maps.DateConverter;
+import com.darshan09200.maps.helper.DateConverter;
 import com.google.android.gms.maps.model.LatLng;
 
 import java.util.Date;

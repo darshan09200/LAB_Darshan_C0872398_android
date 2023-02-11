@@ -1,4 +1,4 @@
-package com.darshan09200.maps;
+package com.darshan09200.maps.helper;
 
 import androidx.room.TypeConverter;
 

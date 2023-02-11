@@ -3,20 +3,20 @@
     xmlns:app="http://schemas.android.com/apk/res-auto">
     <item
         android:id="@+id/layer"
-        android:title="Select Layer"
         android:icon="@drawable/layers"
-        app:showAsAction="always"/>
+        android:title="Select Layer"
+        app:showAsAction="ifRoom" />
 
     <item
         android:id="@+id/favourite"
-        android:title="Show Favourites"
         android:icon="@drawable/favourites"
-        app:showAsAction="always"/>
+        android:title="Show Favourites"
+        app:showAsAction="ifRoom" />
 
     <item
         android:id="@+id/search"
-        android:title="Search"
         android:icon="@drawable/search"
-        app:showAsAction="always"/>
+        android:title="Search"
+        app:showAsAction="always" />
 
 </menu>

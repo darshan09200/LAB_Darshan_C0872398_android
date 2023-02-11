@@ -138,6 +138,11 @@ public class MapsActivity extends AppCompatActivity {
                 android.Manifest.permission.ACCESS_FINE_LOCATION)
                 == PackageManager.PERMISSION_GRANTED) {
             locationPermissionGranted = true;
+
+            MapsFragment mapsFragment = (MapsFragment) getSupportFragmentManager().findFragmentByTag(MAPS_FRAGMENT);
+            if (mapsFragment != null) {
+                mapsFragment.onPermissionGranted();
+            }
         } else {
             ActivityCompat.requestPermissions(this,
                     new String[]{android.Manifest.permission.ACCESS_FINE_LOCATION},
@@ -155,6 +160,11 @@ public class MapsActivity extends AppCompatActivity {
             if (grantResults.length > 0
                     && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
                 locationPermissionGranted = true;
+
+                MapsFragment mapsFragment = (MapsFragment) getSupportFragmentManager().findFragmentByTag(MAPS_FRAGMENT);
+                if (mapsFragment != null) {
+                    mapsFragment.onPermissionGranted();
+                }
             }
         } else {
             super.onRequestPermissionsResult(requestCode, permissions, grantResults);

@@ -1,6 +1,9 @@
 package com.darshan09200.maps;
 
 import android.Manifest;
+import android.annotation.SuppressLint;
+import android.content.Intent;
+import android.content.IntentSender;
 import android.content.pm.PackageManager;
 import android.location.Address;
 import android.location.Geocoder;
@@ -9,6 +12,11 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 
+import androidx.activity.result.ActivityResult;
+import androidx.activity.result.ActivityResultCallback;
+import androidx.activity.result.ActivityResultLauncher;
+import androidx.activity.result.IntentSenderRequest;
+import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.core.app.ActivityCompat;
@@ -21,8 +29,15 @@ import com.darshan09200.maps.api.VolleySingleton;
 import com.darshan09200.maps.databinding.FragmentMapsBinding;
 import com.darshan09200.maps.model.Favourite;
 import com.darshan09200.maps.model.FavouriteViewModel;
+import com.google.android.gms.common.api.ApiException;
+import com.google.android.gms.common.api.ResolvableApiException;
 import com.google.android.gms.location.FusedLocationProviderClient;
+import com.google.android.gms.location.LocationRequest;
 import com.google.android.gms.location.LocationServices;
+import com.google.android.gms.location.LocationSettingsRequest;
+import com.google.android.gms.location.LocationSettingsResponse;
+import com.google.android.gms.location.LocationSettingsStatusCodes;
+import com.google.android.gms.location.Priority;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
@@ -30,6 +45,12 @@ import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
+import com.google.android.gms.tasks.CancellationToken;
+import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.OnTokenCanceledListener;
+import com.google.android.gms.tasks.Task;
+import com.google.android.libraries.places.api.model.Place;
+import com.google.android.libraries.places.widget.Autocomplete;
 
 import java.io.IOException;
 import java.text.DateFormat;
@@ -49,6 +70,7 @@ public class MapsFragment extends Fragment implements GoogleMap.OnMarkerDragList
     private LatLng userLocation;
 
     private Favourite toDelete;
+    private boolean isCheckingGps = false;
 
     private final OnMapReadyCallback callback = new OnMapReadyCallback() {
 
@@ -90,23 +112,16 @@ public class MapsFragment extends Fragment implements GoogleMap.OnMarkerDragList
 
             ((MapsActivity) getActivity()).updateAllMarkers();
 
-
-            if (ActivityCompat.checkSelfPermission(getActivity(), Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(getActivity(), Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-                ((MapsActivity) getActivity()).permissionDeclinedFallbackZoom();
-                return;
-            }
-
-            googleMap.setMyLocationEnabled(true);
             googleMap.getUiSettings().setZoomControlsEnabled(true);
             googleMap.getUiSettings().setTiltGesturesEnabled(false);
 
-            mClient.getLastLocation().addOnSuccessListener(getActivity(), location -> {
-                if (location != null) {
-                    LatLng latLng = new LatLng(location.getLatitude(), location.getLongitude());
-                    if (userLocation == null) zoomAt(latLng);
-                    userLocation = latLng;
-                }
+            googleMap.setOnMyLocationButtonClickListener(() -> {
+                userLocation = null;
+                enableGPS();
+                return true;
             });
+
+            onPermissionGranted();
 
         }
     };
@@ -158,10 +173,10 @@ public class MapsFragment extends Fragment implements GoogleMap.OnMarkerDragList
         }
     }
 
-    public void setMapType(int mapType){
+    public void setMapType(int mapType) {
         if (mMap != null) {
             int selectedMapType;
-            switch (mapType){
+            switch (mapType) {
                 case 2:
                     selectedMapType = GoogleMap.MAP_TYPE_TERRAIN;
                     break;
@@ -173,6 +188,94 @@ public class MapsFragment extends Fragment implements GoogleMap.OnMarkerDragList
                     selectedMapType = GoogleMap.MAP_TYPE_NORMAL;
             }
             mMap.setMapType(selectedMapType);
+        }
+    }
+
+    void onPermissionGranted() {
+        if (ActivityCompat.checkSelfPermission(getActivity(), Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(getActivity(), Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+            return;
+        }
+        enableGPS();
+        mMap.setMyLocationEnabled(true);
+        zoomToUserLocation();
+    }
+
+    void zoomToUserLocation() {
+        if (ActivityCompat.checkSelfPermission(getActivity(), Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(getActivity(), Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+            return;
+        }
+        mClient.getCurrentLocation(Priority.PRIORITY_HIGH_ACCURACY, new CancellationToken() {
+            @NonNull
+            @Override
+            public CancellationToken onCanceledRequested(@NonNull OnTokenCanceledListener onTokenCanceledListener) {
+                return null;
+            }
+
+            @Override
+            public boolean isCancellationRequested() {
+                return false;
+            }
+        }).addOnSuccessListener(getActivity(), location -> {
+            if (location != null) {
+                LatLng latLng = new LatLng(location.getLatitude(), location.getLongitude());
+                if (userLocation == null) zoomAt(latLng);
+                userLocation = latLng;
+            }
+        });
+    }
+
+    ActivityResultLauncher<IntentSenderRequest> gpsActivityResult = registerForActivityResult(
+            new ActivityResultContracts.StartIntentSenderForResult(),
+            result -> {
+                if (result.getResultCode() == MapsActivity.RESULT_OK) {
+                    userLocation = null;
+                    zoomToUserLocation();
+                }
+                isCheckingGps = false;
+            });
+
+
+    private void enableGPS() {
+        if (!isCheckingGps) {
+            isCheckingGps = true;
+            LocationRequest locationRequest = LocationRequest.create();
+            locationRequest.setPriority(Priority.PRIORITY_HIGH_ACCURACY);
+            locationRequest.setInterval(5 * 1000);
+            locationRequest.setFastestInterval(3 * 1000);
+
+            LocationSettingsRequest.Builder builder = new LocationSettingsRequest.Builder()
+                    .addLocationRequest(locationRequest);
+
+            builder.setAlwaysShow(true);
+
+            Task<LocationSettingsResponse> result =
+                    LocationServices.getSettingsClient(getActivity()).checkLocationSettings(builder.build());
+
+            result.addOnCompleteListener(task -> {
+                try {
+                    LocationSettingsResponse response = task.getResult(ApiException.class);
+                    zoomToUserLocation();
+                    isCheckingGps = false;
+
+                } catch (ApiException exception) {
+                    switch (exception.getStatusCode()) {
+                        case LocationSettingsStatusCodes.RESOLUTION_REQUIRED:
+                            try {
+                                ResolvableApiException resolvable = (ResolvableApiException) exception;
+                                gpsActivityResult.launch(new IntentSenderRequest.Builder(
+                                        resolvable.getResolution().getIntentSender()
+                                ).setFillInIntent(new Intent())
+                                        .build());
+                            } catch (ClassCastException e) {
+                                isCheckingGps = false;
+                            }
+                            break;
+                        case LocationSettingsStatusCodes.SETTINGS_CHANGE_UNAVAILABLE:
+                            isCheckingGps = false;
+                            break;
+                    }
+                }
+            });
         }
     }
 
