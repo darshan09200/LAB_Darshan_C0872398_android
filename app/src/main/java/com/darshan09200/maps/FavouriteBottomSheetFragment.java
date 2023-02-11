@@ -47,13 +47,15 @@ public class FavouriteBottomSheetFragment extends BottomSheetDialogFragment impl
 
         favouriteViewModel = new ViewModelProvider(getActivity()).get(FavouriteViewModel.class);
         favouriteViewModel.getAllFavourites().observe(this, favourites -> {
-            System.out.println("updated bo");
+            if(favourites.size() == 0 && this.favourites.size() > 0){
+                FavouriteBottomSheetFragment.this.dismiss();
+                return;
+            }
             this.favourites.clear();
             this.favourites.addAll(favourites);
             if (binding != null) {
                 binding.favouriteList.getAdapter().notifyDataSetChanged();
             }
-            System.out.println(favourites.size());
         });
 
         return dialog;
@@ -86,6 +88,34 @@ public class FavouriteBottomSheetFragment extends BottomSheetDialogFragment impl
                         FavouriteBottomSheetFragment.this::deleteFavourite));
             }
         };
+
+        binding.favouriteList.getAdapter().registerAdapterDataObserver(new RecyclerView.AdapterDataObserver() {
+
+            @Override
+            public void onChanged() {
+                super.onChanged();
+                checkEmpty();
+            }
+
+            @Override
+            public void onItemRangeInserted(int positionStart, int itemCount) {
+                super.onItemRangeInserted(positionStart, itemCount);
+                checkEmpty();
+            }
+
+            @Override
+            public void onItemRangeRemoved(int positionStart, int itemCount) {
+                super.onItemRangeRemoved(positionStart, itemCount);
+                checkEmpty();
+            }
+
+            void checkEmpty() {
+                boolean emptyViewVisible = binding.favouriteList.getAdapter().getItemCount() == 0;
+                binding.emptyView.setVisibility(emptyViewVisible ? View.VISIBLE : View.GONE);
+                binding.favouriteList.setVisibility(emptyViewVisible ? View.GONE : View.VISIBLE);
+            }
+        });
+
         return binding.getRoot();
     }
 
@@ -103,7 +133,7 @@ public class FavouriteBottomSheetFragment extends BottomSheetDialogFragment impl
         builder.setPositiveButton("Yes", (dialog, which) -> {
             favouriteViewModel.delete(favourite);
             binding.favouriteList.getAdapter().notifyItemRemoved(position);
-            Toast.makeText(getActivity(), favourite.name + " is deleted!", Toast.LENGTH_LONG);
+            Toast.makeText(getActivity(), favourite.name + " is deleted!", Toast.LENGTH_LONG).show();
         });
         builder.setNegativeButton("No", (dialog, which) -> binding.favouriteList.getAdapter().notifyItemChanged(position));
         AlertDialog alertDialog = builder.create();
@@ -122,7 +152,7 @@ public class FavouriteBottomSheetFragment extends BottomSheetDialogFragment impl
     public void onCancel(@NonNull DialogInterface dialog) {
         super.onCancel(dialog);
 
-        ((MapsActivity)getActivity()).addObserver();
+        ((MapsActivity) getActivity()).addObserver();
     }
 
 }

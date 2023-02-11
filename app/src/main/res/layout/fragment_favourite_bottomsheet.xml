@@ -4,9 +4,9 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:animateLayoutChanges="true"
+    android:background="@drawable/rounded_dialog"
     android:minHeight="100dp"
-    android:paddingVertical="8dp"
-    android:background="@drawable/rounded_dialog">
+    android:paddingVertical="8dp">
 
     <TextView
         android:id="@+id/favourite_header"
@@ -24,6 +24,18 @@
         android:id="@+id/favourite_list"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/favourite_header" />
+
+    <TextView
+        android:id="@+id/empty_view"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:padding="16dp"
+        android:text="No Records Found"
+        android:textAlignment="center"
+        android:visibility="gone"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@id/favourite_header" />
