@@ -9,6 +9,7 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
+import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentActivity;
 import androidx.fragment.app.FragmentManager;
 import androidx.lifecycle.ViewModelProvider;
@@ -22,6 +23,7 @@ import android.view.MenuItem;
 
 import com.darshan09200.maps.model.Favourite;
 import com.darshan09200.maps.model.FavouriteViewModel;
+import com.google.android.gms.common.api.Status;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
@@ -32,6 +34,7 @@ import com.darshan09200.maps.databinding.ActivityMapsBinding;
 import com.google.android.libraries.places.api.Places;
 import com.google.android.libraries.places.api.model.Place;
 import com.google.android.libraries.places.widget.Autocomplete;
+import com.google.android.libraries.places.widget.AutocompleteActivity;
 import com.google.android.libraries.places.widget.model.AutocompleteActivityMode;
 import com.google.android.material.bottomsheet.BottomSheetDialog;
 
@@ -58,18 +61,23 @@ public class MapsActivity extends AppCompatActivity {
             new ActivityResultContracts.StartActivityForResult(),
             result -> {
                 if (result.getResultCode() == RESULT_OK) {
-                    Place place = Autocomplete.getPlaceFromIntent(result.getData());
+                    Intent data = result.getData();
+                    if (data != null) {
+                        Place place = Autocomplete.getPlaceFromIntent(data);
+                        if (place.getLatLng() != null) {
+                            Favourite favourite = new Favourite();
+                            favourite.id = place.getId();
+                            favourite.coordinate = place.getLatLng();
+                            favourite.name = place.getName();
 
-                    Favourite favourite = new Favourite();
-                    favourite.id = place.getId();
-                    favourite.coordinate = place.getLatLng();
-                    favourite.name = place.getName();
-
-                    MapsFragment mapsFragment = (MapsFragment) getSupportFragmentManager().findFragmentByTag(MAPS_FRAGMENT);
-                    if(mapsFragment != null) {
-                        mapsFragment.addMarker(favourite.coordinate, favourite.name, "");
+                            MapsFragment mapsFragment = (MapsFragment) getSupportFragmentManager().findFragmentByTag(MAPS_FRAGMENT);
+                            if (mapsFragment != null) {
+                                mapsFragment.addMarker(favourite.coordinate, favourite.name, "");
+                                mapsFragment.zoomAt(favourite.coordinate);
+                            }
+                            favouriteViewModel.insert(favourite);
+                        }
                     }
-                    favouriteViewModel.insert(favourite);
                 }
             });
     @Override
@@ -79,19 +87,14 @@ public class MapsActivity extends AppCompatActivity {
         binding = ActivityMapsBinding.inflate(getLayoutInflater());
         setContentView(binding.getRoot());
 
+        favouriteViewModel = new ViewModelProvider(this).get(FavouriteViewModel.class);
+
         setSupportActionBar(binding.toolbar);
 
         getLocationPermission();
         updateLocationUI();
 
         Places.initialize(getApplicationContext(), getResources().getString(R.string.api_key));
-
-        favouriteViewModel = new ViewModelProvider.AndroidViewModelFactory(getApplication())
-                .create(FavouriteViewModel.class);
-        favouriteViewModel.getAllFavourites().observe(this, favourites -> {
-            this.favourites.clear();
-            this.favourites.addAll(favourites);
-        });
     }
 
     @Override
@@ -99,17 +102,33 @@ public class MapsActivity extends AppCompatActivity {
         super.onResume();
 
         updateLocationUI();
+
+        addObserver();
+    }
+
+    void addObserver(){
+        favouriteViewModel.getAllFavourites().observe(this, favourites -> {
+            System.out.println("updated");
+            this.favourites.clear();
+            this.favourites.addAll(favourites);
+            System.out.println(favourites.size());
+            updateAllMarkers();
+        });
     }
 
     private void updateLocationUI(){
+        Fragment permissionFragment = getSupportFragmentManager().findFragmentByTag(PERMISSION_FRAGMENT);
+        Fragment mapsFragment = getSupportFragmentManager().findFragmentByTag(MAPS_FRAGMENT) ;
         if (!locationPermissionGranted) {
-            PermissionFragment fragment = new PermissionFragment();
-            fragment.locationPermissionGranted = locationPermissionGranted;
-            getSupportFragmentManager().beginTransaction()
-                    .replace(R.id.map_container, fragment, PERMISSION_FRAGMENT)
-                    .commit();
+            if(permissionFragment == null || !permissionFragment.isVisible()) {
+                PermissionFragment fragment = new PermissionFragment();
+                fragment.locationPermissionGranted = locationPermissionGranted;
+                getSupportFragmentManager().beginTransaction()
+                        .replace(R.id.map_container, fragment, PERMISSION_FRAGMENT)
+                        .commit();
+            }
 
-        } else {
+        } else if (mapsFragment == null || !mapsFragment.isVisible()){
             getSupportFragmentManager().beginTransaction()
                     .add(R.id.map_container, new MapsFragment(), MAPS_FRAGMENT)
                     .commit();
@@ -165,7 +184,7 @@ public class MapsActivity extends AppCompatActivity {
             bottomSheetFragment.show(getSupportFragmentManager(), bottomSheetFragment.getTag());
             return true;
         } else if (id == R.id.search){
-            List<Place.Field> fields = Arrays.asList(Place.Field.ID, Place.Field.NAME);
+            List<Place.Field> fields = Arrays.asList(Place.Field.ID, Place.Field.NAME, Place.Field.LAT_LNG);
 
             // Start the autocomplete intent.
             Intent intent = new Autocomplete.IntentBuilder(AutocompleteActivityMode.FULLSCREEN, fields)
@@ -191,7 +210,7 @@ public class MapsActivity extends AppCompatActivity {
         }
     }
 
-    void updateAllMarkers(List<Favourite> favourites){
+    void updateAllMarkers(){
         MapsFragment mapsFragment = (MapsFragment) getSupportFragmentManager().findFragmentByTag(MAPS_FRAGMENT);
         if(mapsFragment != null) {
             mapsFragment.clearMap();

@@ -34,9 +34,12 @@ import java.util.Locale;
 import java.util.UUID;
 
 public class MapsFragment extends Fragment {
+    private static final float ZOOM = 15;
     private GoogleMap mMap;
     FusedLocationProviderClient mClient;
     private FragmentMapsBinding binding;
+
+    private LatLng userLocation;
 
     private OnMapReadyCallback callback = new OnMapReadyCallback() {
 
@@ -51,6 +54,7 @@ public class MapsFragment extends Fragment {
          */
         @Override
         public void onMapReady(final GoogleMap googleMap) {
+            System.out.println("called maps ready");
             mMap = googleMap;
             if (ActivityCompat.checkSelfPermission(getActivity(), Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(getActivity(), Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
                 return;
@@ -65,14 +69,17 @@ public class MapsFragment extends Fragment {
                 favourite.id = pointOfInterest.placeId;
                 favourite.coordinate = pointOfInterest.latLng;
                 favourite.name = pointOfInterest.name;
-                ((MapsActivity)getActivity()).addToFavourite(favourite);
+                ((MapsActivity) getActivity()).addToFavourite(favourite);
                 addMarker(pointOfInterest.latLng, pointOfInterest.name, "");
+                zoomAt(pointOfInterest.latLng);
             });
 
             mClient.getLastLocation().addOnSuccessListener(getActivity(), location -> {
                 if (location != null) {
                     LatLng latLng = new LatLng(location.getLatitude(), location.getLongitude());
-                    mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(latLng, 15));
+                    if (userLocation == null)
+                        zoomAt(latLng);
+                    userLocation = latLng;
                 }
             });
 
@@ -80,6 +87,8 @@ public class MapsFragment extends Fragment {
                 Favourite favourite = getNearestPlace(latLng);
                 addMarker(favourite.coordinate, favourite.name, "");
             });
+
+            ((MapsActivity) getActivity()).updateAllMarkers();
         }
     };
 
@@ -108,8 +117,8 @@ public class MapsFragment extends Fragment {
         }
     }
 
-    public void clearMap(){
-        if(mMap != null){
+    public void clearMap() {
+        if (mMap != null) {
             mMap.clear();
         }
     }
@@ -124,8 +133,8 @@ public class MapsFragment extends Fragment {
         }
     }
 
-    public void zoomAt(LatLng latLng){
-        mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(latLng, 18.0f));
+    public void zoomAt(LatLng latLng) {
+        mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(latLng, ZOOM));
     }
 
     public Favourite getNearestPlace(LatLng latLng) {

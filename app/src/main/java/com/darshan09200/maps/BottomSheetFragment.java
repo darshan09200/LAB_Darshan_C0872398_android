@@ -2,6 +2,7 @@ package com.darshan09200.maps;
 
 import android.app.AlertDialog;
 import android.app.Dialog;
+import android.content.DialogInterface;
 import android.graphics.Color;
 import android.os.Bundle;
 import android.view.LayoutInflater;
@@ -45,16 +46,15 @@ public class BottomSheetFragment extends BottomSheetDialogFragment implements Fa
     public Dialog onCreateDialog(@Nullable Bundle savedInstanceState) {
         dialog = (BottomSheetDialog) super.onCreateDialog(savedInstanceState);
 
-        favouriteViewModel = new ViewModelProvider.AndroidViewModelFactory(getActivity().getApplication())
-                .create(FavouriteViewModel.class);
+        favouriteViewModel = new ViewModelProvider(getActivity()).get(FavouriteViewModel.class);
         favouriteViewModel.getAllFavourites().observe(this, favourites -> {
+            System.out.println("updated bo");
             this.favourites.clear();
             this.favourites.addAll(favourites);
             if (binding != null) {
                 binding.favouriteList.getAdapter().notifyDataSetChanged();
             }
-
-            ((MapsActivity) getActivity()).updateAllMarkers(favourites);
+            System.out.println(favourites.size());
         });
 
         return dialog;
@@ -100,11 +100,9 @@ public class BottomSheetFragment extends BottomSheetDialogFragment implements Fa
         AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
         builder.setTitle("Are you sure you want to delete from favourite?");
         builder.setPositiveButton("Yes", (dialog, which) -> {
-            Favourite deletedFavourite = favourite;
-            favouriteViewModel.delete(deletedFavourite);
+            favouriteViewModel.delete(favourite);
             binding.favouriteList.getAdapter().notifyItemRemoved(position);
-            Snackbar.make(getDialog().getWindow().getDecorView(), deletedFavourite.name + " is deleted!", Snackbar.LENGTH_LONG)
-                    .setAction("Undo", v -> favouriteViewModel.insert(deletedFavourite)).show();
+            Toast.makeText(getActivity(), favourite.name + " is deleted!", Toast.LENGTH_LONG);
         });
         builder.setNegativeButton("No", (dialog, which) -> binding.favouriteList.getAdapter().notifyItemChanged(position));
         AlertDialog alertDialog = builder.create();
@@ -116,5 +114,12 @@ public class BottomSheetFragment extends BottomSheetDialogFragment implements Fa
         Favourite favourite = favourites.get(position);
 
         ((MapsActivity) getActivity()).zoomAt(favourite.coordinate);
+    }
+
+    @Override
+    public void onCancel(@NonNull DialogInterface dialog) {
+        super.onCancel(dialog);
+
+        ((MapsActivity)getActivity()).addObserver();
     }
 }

@@ -25,7 +25,9 @@ public class FavouriteViewModel extends AndroidViewModel {
 
     public LiveData<Favourite> getFavourite(long id) {return databaseClient.getFavourite(id);}
     
-    public void insert(Favourite favourite) {databaseClient.insert(favourite);}
+    public void insert(Favourite favourite) {
+        favourite.name = favourite.name.replace("\n", " ");
+        databaseClient.insert(favourite);}
     
     public void delete(Favourite favourite) {databaseClient.delete(favourite);}
 }
